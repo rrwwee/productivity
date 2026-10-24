@@ -1,0 +1,32 @@
+{
+  "device": "Samsung Galaxy S26 FE (SM-S741U)",
+  "android": 17,
+  "model": "Gemma 4 E2B",
+  "runtime": "LiteRT-LM 0.18.1",
+  "build": "debug APK built and installed",
+  "model_size_bytes": 2588147712,
+  "no_internet_permission": true,
+  "image_test": {
+    "status": "Vision test: OTHER",
+    "ready": true,
+    "monitoring": false,
+    "busy": false,
+    "nudged": false,
+    "backend": "GPU",
+    "decision": "OTHER",
+    "latencyMs": 2695,
+    "checks": 2
+  },
+  "fixture": "Readable synthetic notes image; not a live capture test.",
+  "other_image_test": {
+    "fixture": "Unreadable synthetic image",
+    "decision": "UNKNOWN",
+    "latency_ms": 9692
+  },
+  "pending": [
+    "live MediaProjection capture",
+    "real X feed classification",
+    "notification delivery and article opening",
+    "stop cleanup"
+  ]
+}
