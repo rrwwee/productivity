@@ -4,13 +4,13 @@ Research for [Choose a viable phone and cross-app capture path](https://github.c
 
 ## Answer and decision gate
 
-Prefer the now-available loaner Pixel with Android MediaProjection, subject to a short physical-device test and Android toolchain setup. The known iPhone configuration is not yet a proven route: on iOS 26.6.1, cross-app ReplayKit capture introduces a separate extension with tight resource limits, while the containing application's sustained background inference remains unproven. An actual upgrade to iOS 27 would make the iPhone ScreenCaptureKit route credible enough for a test, but the owner reports unreliable Wi-Fi. An offered update or an iOS 27 SDK alone is insufficient; avoid making the demo depend on completing that upgrade.
+Prefer the now-available loaner Samsung Galaxy S26 FE running Android 17 with Android MediaProjection, subject to a short physical-device test and Android toolchain setup. The known iPhone configuration is not yet a proven route: on iOS 26.6.1, cross-app ReplayKit capture introduces a separate extension with tight resource limits, while the containing application's sustained background inference remains unproven. An actual upgrade to iOS 27 would make the iPhone ScreenCaptureKit route credible enough for a test, but the owner reports unreliable Wi-Fi. An offered update or an iOS 27 SDK alone is insufficient; avoid making the demo depend on completing that upgrade.
 
 Use one bounded integration test to choose the platform: while X remains foregrounded, obtain a frame, classify it with a local Gemma model, deliver a local notification, and tap that notification to open the fixed article URL. Record the OS, model/runtime, elapsed inference time, and whether capture continues. No physical-device execution has been demonstrated by this research.
 
 ## Established environment
 
-- Owner reports iPhone 15 Pro running iOS 26.6.1, with an offered iOS 27.0.1 update but unreliable Wi-Fi. The owner now has a loaner Pixel; its model and Android version remain unresolved.
+- Owner reports iPhone 15 Pro running iOS 26.6.1, with an offered iOS 27.0.1 update but unreliable Wi-Fi. The loaner is confirmed by the owner as Samsung Galaxy S26 FE running Android 17, correcting the earlier assumption that it was a Pixel.
 - Parent agent checked Xcode 27.1 and the installed iPhoneOS SDK: ScreenCaptureKit's relevant stream and picker declarations require iOS 27. This is local toolchain evidence, not evidence that the phone runs iOS 27.
 - Parent agent found neither `adb` in PATH nor `~/Library/Android/sdk`. Android setup adds work; no duration guarantee is justified.
 - Owner's target is a solo hackathon demo in under four hours: scroll X, have local Gemma inspect the screen, then deliver a notification opening one fixed Wikipedia/article URL.
@@ -23,23 +23,23 @@ For the current iOS 26 phone, [Apple's ReplayKit security documentation](https:/
 
 [Apple's Metal background guide](https://developer.apple.com/documentation/metal/preparing-your-metal-app-to-run-in-the-background) says new Metal command buffers are rejected after backgrounding under the general iOS execution rules. A screen-capture background declaration is not documented there as permission for arbitrary GPU inference. For an iOS 27 experiment, test CPU vision and CPU inference first, or independently establish an applicable background-GPU mechanism. Neither CPU throughput nor continued execution is guaranteed by this report.
 
-## Pixel capture and execution
+## Android capture and execution
 
 [Android MediaProjection](https://developer.android.com/media/grow/media-projection) supports full-display or single-app capture, with frames delivered through a Surface such as ImageReader. Android 14+ targets require the media-projection foreground service type and consent for each capture session. A session can yield multiple frames; consent is not required for every sampled screenshot. Full-display and single-app selections have different coverage, so choose deliberately.
 
 [Android 15 QPR1+](https://developer.android.com/about/versions/15/behavior-changes-all) shows a prominent capture indicator and stops projection when the screen locks. Starting another session requires fresh consent. [Secure windows](https://developer.android.com/security/fraud-prevention/activities) can be absent or blank in capture. An unavailable frame must be treated as unknown, not evidence of healthy behavior.
 
-**Inference:** a user-started foreground-service session is the shortest documented Pixel candidate. It still requires a real device test of concurrent capture and model execution; foreground service support is not a benchmark or guarantee against memory pressure.
+**Inference:** a user-started foreground-service session is the shortest documented Android candidate, applicable to the Samsung loaner rather than specific to Pixel. It still requires a real device test of concurrent capture and model execution; foreground service support is not a benchmark or guarantee against memory pressure. This report has not audited Android 17 or Samsung-specific changes beyond the platform documentation cited above.
 
 ## Local model candidate
 
-Google documents [Gemma 4 E2B and E4B support in LiteRT-LM](https://developers.google.com/edge/litert-lm/models/gemma-4), including mobile benchmarks. Published model bundles are 2.58 GB and 3.65 GB. The listed iPhone and Android benchmark devices differ from the owner's iPhone 15 Pro and unknown Pixel. Bundle size is not total runtime memory, and text performance is not screenshot-classification performance. E2B is the smaller candidate to test first; this is a recommendation, not a measured result.
+Google documents [Gemma 4 E2B and E4B support in LiteRT-LM](https://developers.google.com/edge/litert-lm/models/gemma-4), including mobile benchmarks. Published model bundles are 2.58 GB and 3.65 GB. The listed iPhone and Android benchmark devices differ from the owner's iPhone 15 Pro and Samsung Galaxy S26 FE. Bundle size is not total runtime memory, and text performance is not screenshot-classification performance. E2B is the smaller candidate to test first; this is a recommendation, not a measured result.
 
 The [Swift API](https://developers.google.com/edge/litert-lm/swift) exposes CPU/GPU backend configuration, a vision backend, and image input including raw bytes. This permits a design that need not write captured images to disk. Image understanding, OS capture, memory pressure, background execution, notification permission, and URL opening remain separate integration checks.
 
 ## Shortest physical test
 
-1. Establish an actual supported phone: Pixel model/OS, or an iPhone confirmed to run iOS 27 after any owner-directed update. Confirm provisioning and a minimal app launch.
+1. Use the confirmed Samsung Galaxy S26 FE running Android 17. Confirm provisioning and a minimal app launch. The iPhone remains a fallback requiring an actual iOS 27 update and separate validation.
 2. Start an explicit capture session, switch to X, and verify that a recent frame arrives while X remains frontmost. Discard frames in memory after use.
 3. Run one screenshot through local Gemma E2B. On iOS, begin with CPU backends because background Metal permission is unresolved. Do not substitute a cloud call.
 4. Request notification permission and deliver a local notification based on the result. Tap it to open the fixed article URL.
