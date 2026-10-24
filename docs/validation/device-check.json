@@ -23,10 +23,54 @@
     "decision": "UNKNOWN",
     "latency_ms": 9692
   },
-  "pending": [
-    "live MediaProjection capture",
-    "real X feed classification",
-    "notification delivery and article opening",
-    "stop cleanup"
-  ]
+  "pending": [],
+  "real_x_image_test": {
+    "source": "Native X app visible on Galaxy; capture stayed on device and was deleted after inference.",
+    "decision": "X_FEED",
+    "latency_ms": 4525,
+    "backend": "GPU"
+  },
+  "live_capture_test": {
+    "source": "MediaProjection while native X app foregrounded",
+    "decision": "X_FEED",
+    "latency_ms": 2677,
+    "notification_posted": true
+  },
+  "notification_visibility": {
+    "root_cause": "Android redacted PRIVATE notifications during MediaProjection.",
+    "fix": "PUBLIC visibility plus an explicit public notification version containing only public article facts.",
+    "user_confirmed_title_and_body_visible": true,
+    "user_confirmed_article_link_opened": true
+  },
+  "live_generated_nudge": {
+    "status": "A better next thing is waiting in your notifications.",
+    "ready": true,
+    "monitoring": true,
+    "busy": false,
+    "nudged": true,
+    "backend": "GPU",
+    "decision": "X_FEED",
+    "latencyMs": 2114,
+    "checks": 4,
+    "nudgeTitle": "Water calculating money? What is that?",
+    "nudgeBody": "Imagine tanks and valves figuring out money flows with just water. See how this analog machine did the math!",
+    "copyLatencyMs": 16398
+  },
+  "live_quiet_screen_test": {
+    "screen": "MONIAC article in browser",
+    "decision": "OTHER",
+    "latency_ms": 2498,
+    "nudge_sent": false
+  },
+  "banner_duration": {
+    "interactive_timeout_ms": 30000,
+    "previous_setting": null,
+    "scope": "demo phone accessibility setting, not per-app",
+    "user_confirmed_long_enough": true
+  },
+  "stop_cleanup": {
+    "monitoring": false,
+    "model_loaded": false,
+    "system_media_projection": null
+  }
 }

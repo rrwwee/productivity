@@ -9,12 +9,14 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.Image
 import android.media.ImageReader
+import android.media.AudioAttributes
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.*
 import android.util.Log
 import android.view.WindowManager
+import android.provider.Settings
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
@@ -26,9 +28,9 @@ class MonitoringService : Service() {
         const val SOON = "org.localhackathon.elsewhere.SOON"
         const val RESET = "org.localhackathon.elsewhere.RESET"
         const val INTERVAL_MS = 30_000L
-        const val ARTICLE = "https://en.wikipedia.org/wiki/James_Webb_Space_Telescope"
+        const val ARTICLE = "https://en.wikipedia.org/wiki/MONIAC"
         private const val ONGOING = "monitoring"
-        private const val NUDGES = "nudges"
+        private const val NUDGES = "curiosity_v2"
     }
     private val captureThread = HandlerThread("ElsewhereCapture")
     private lateinit var captureHandler: Handler
@@ -63,7 +65,12 @@ class MonitoringService : Service() {
         captureThread.start(); captureHandler = Handler(captureThread.looper)
         val notifications = getSystemService(NotificationManager::class.java)
         notifications.createNotificationChannel(NotificationChannel(ONGOING, "Monitoring session", NotificationManager.IMPORTANCE_LOW))
-        notifications.createNotificationChannel(NotificationChannel(NUDGES, "A better next thing", NotificationManager.IMPORTANCE_HIGH))
+        notifications.createNotificationChannel(NotificationChannel(NUDGES, "Curiosity breaks", NotificationManager.IMPORTANCE_HIGH).apply {
+            enableVibration(true)
+            vibrationPattern = longArrayOf(0, 120, 70, 120)
+            setSound(Settings.System.DEFAULT_NOTIFICATION_URI, AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
+        })
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -152,17 +159,30 @@ class MonitoringService : Service() {
             DemoState.status = "Checking this moment, privately…"
             ModelRunner.classify(applicationContext, bytes) { decision, error ->
                 Handler(Looper.getMainLooper()).post {
+                    var generating = false
                     try {
                         if (active) {
                             when {
                                 error != null -> DemoState.status = "Check unavailable. We’ll try again in 30 seconds."
-                                decision == "X_FEED" && !DemoState.nudged -> sendNudge()
+                                decision == "X_FEED" && !DemoState.nudged -> {
+                                    generating = true
+                                    DemoState.status = "Finding a more interesting next thing…"
+                                    ModelRunner.generateNudge(applicationContext) { copy, failure ->
+                                        Handler(Looper.getMainLooper()).post {
+                                            try {
+                                                if (active && copy != null && failure == null) sendNudge(copy)
+                                                else if (active) DemoState.status = "Could not prepare a nudge. We’ll try again."
+                                                DemoState.save(this)
+                                            } finally { inFlight.set(false) }
+                                        }
+                                    }
+                                }
                                 decision == "OTHER" -> DemoState.status = "Nothing to interrupt. Carry on."
                                 else -> DemoState.status = "No confident match. Carry on."
                             }
                             DemoState.save(this)
                         }
-                    } finally { inFlight.set(false) }
+                    } finally { if (!generating) inFlight.set(false) }
                 }
             }
         } catch (error: Throwable) {
@@ -172,17 +192,29 @@ class MonitoringService : Service() {
         }
     }
 
-    private fun sendNudge() {
+    private fun sendNudge(copy: NudgeCopy) {
         DemoState.nudged = true
         val article = Intent(Intent.ACTION_VIEW, Uri.parse(ARTICLE)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val openArticle = PendingIntent.getActivity(this, 2, article, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        // This copy contains only public article facts, never content from the captured feed.
+        // Android otherwise redacts it to the app name while MediaProjection is active.
+        val publicVersion = Notification.Builder(this, NUDGES)
+            .setSmallIcon(android.R.drawable.ic_menu_compass)
+            .setContentTitle(copy.title).setContentText(copy.body)
+            .setStyle(Notification.BigTextStyle().bigText(copy.body))
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setContentIntent(openArticle).setAutoCancel(true)
+            .addAction(Notification.Action.Builder(null, "See how it worked", openArticle).build()).build()
         val notification = Notification.Builder(this, NUDGES)
             .setSmallIcon(android.R.drawable.ic_menu_compass)
-            .setContentTitle("A little curiosity instead?")
-            .setContentText("Step out of the feed. Meet the James Webb Space Telescope.")
-            .setStyle(Notification.BigTextStyle().bigText("Step out of the feed. Explore what the James Webb Space Telescope is discovering."))
+            .setContentTitle(copy.title)
+            .setContentText(copy.body)
+            .setColor(android.graphics.Color.rgb(0, 91, 225))
+            .setStyle(Notification.BigTextStyle().bigText(copy.body))
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setPublicVersion(publicVersion)
             .setContentIntent(openArticle).setAutoCancel(true).setCategory(Notification.CATEGORY_RECOMMENDATION)
-            .addAction(Notification.Action.Builder(null, "Explore", openArticle).build()).build()
+            .addAction(Notification.Action.Builder(null, "See how it worked", openArticle).build()).build()
         getSystemService(NotificationManager::class.java).notify(2, notification)
         DemoState.status = "A better next thing is waiting in your notifications."
         Log.i("Elsewhere", "Nudge delivered after Gemma X_FEED decision")

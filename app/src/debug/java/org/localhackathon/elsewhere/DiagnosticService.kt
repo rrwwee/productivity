@@ -21,8 +21,14 @@ class DiagnosticService : Service() {
             .setContentText("On-device development test").build(),
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
         val name = intent?.getStringExtra("classify_file")
+        val generateCopy = intent?.getBooleanExtra("generate_copy", false) == true
         ModelRunner.prepare(applicationContext) { error ->
-            if (error != null || name == null) finishTest()
+            if (error != null) finishTest()
+            else if (generateCopy) ModelRunner.generateNudge(applicationContext) { _, failure ->
+                DemoState.status = if (failure == null) "Notification copy generated on-device." else "Copy generation failed: ${failure.message}"
+                finishTest()
+            }
+            else if (name == null) finishTest()
             else {
                 val image = File(filesDir, name).canonicalFile
                 if (image.parentFile != filesDir.canonicalFile || !image.isFile) finishTest()

@@ -19,16 +19,22 @@ object DemoState {
     @Volatile var latencyMs = 0L
     @Volatile var nextCheckAt = 0L
     @Volatile var checks = 0
+    @Volatile var nudgeTitle = ""
+    @Volatile var nudgeBody = ""
+    @Volatile var copyLatencyMs = 0L
 
     fun save(context: Context) {
         val report = JSONObject().apply {
             put("status", status); put("ready", ready); put("monitoring", monitoring)
             put("busy", busy); put("nudged", nudged); put("backend", backend)
             put("decision", lastDecision); put("latencyMs", latencyMs); put("checks", checks)
+            put("nudgeTitle", nudgeTitle); put("nudgeBody", nudgeBody); put("copyLatencyMs", copyLatencyMs)
         }
         runCatching { File(context.filesDir, "diagnostics.json").writeText(report.toString(2)) }
     }
 }
+
+data class NudgeCopy(val title: String, val body: String)
 
 object ModelRunner {
     private val worker = Executors.newSingleThreadExecutor()
@@ -145,6 +151,85 @@ object ModelRunner {
             engine = null
             DemoState.ready = false
             DemoState.save(context)
+        }
+    }
+
+    fun generateNudge(context: Context, callback: (NudgeCopy?, Throwable?) -> Unit) {
+        worker.execute {
+            DemoState.busy = true
+            val started = SystemClock.elapsedRealtime()
+            try {
+                val current = checkNotNull(engine) { "Gemma is not ready." }
+                val config = ConversationConfig(
+                    systemInstruction = Contents.of(
+                        "Write a tiny, irresistible invitation to read a surprising technology story. " +
+                            "Use simple, punchy English, like a curious friend who just discovered something amazing. " +
+                            "The title is a short question about a COMPUTER doing calculations using WATER. " +
+                            "The body teases how tanks and valves could represent money. Give a concrete reason to click. " +
+                            "Keep the wording playful and natural, not a textbook heading. " +
+                            "Use only the facts supplied. People built the machine; water performed the calculations. " +
+                            "Electronic computers already existed. No claims about the first computer, a time before computers, " +
+                            "or predicting the future. No names or dates. " +
+                            "Do not mention X, scrolling, productivity or taking a break. Do not scold or tell the reader what to do. " +
+                            "Return JSON with title (8-55 characters) and body (15-130 characters). Use sentence case."
+                    ),
+                    samplerConfig = SamplerConfig(topK = 40, topP = 0.95, temperature = 0.85,
+                        seed = System.currentTimeMillis().toInt()),
+                    maxOutputToken = 160,
+                    enableResponseFormat = true,
+                    thinkingConfig = ThinkingConfig(enableThinking = false, thinkingTokenBudget = 0)
+                )
+                val format = ResponseFormat.json("""{
+                    "type":"object",
+                    "properties":{
+                        "title":{"type":"string","minLength":8,"maxLength":55},
+                        "body":{"type":"string","minLength":15,"maxLength":130}
+                    },
+                    "required":["title","body"],
+                    "additionalProperties":false
+                }""")
+                var copy: NudgeCopy? = null
+                current.createConversation(config).use { conversation ->
+                    var prompt = "Article facts: A real analog computer used water flowing through transparent tanks, " +
+                        "pipes and valves to calculate a model of money flows in an economy. Changing valves represented " +
+                        "changes in economic policy. People built the machine, and the moving water performed the calculations. " +
+                        "Electronic computers also existed at that time. " +
+                        "Write a title and body that make this surprising machine worth discovering. " +
+                        "The user can tap the notification to open the article."
+                    repeat(2) {
+                        if (copy == null) {
+                            val response = conversation.sendMessage(prompt, maxOutputToken = 160, responseFormat = format).toString()
+                            copy = runCatching {
+                                val start = response.indexOf('{')
+                                val end = response.lastIndexOf('}')
+                                require(start >= 0 && end > start)
+                                val json = JSONObject(response.substring(start, end + 1))
+                                val title = json.getString("title").replace('\n', ' ').trim()
+                                val body = json.getString("body").replace('\n', ' ').trim()
+                                require(title.length in 8..65 && body.length in 15..160) {
+                                    "titleLength=${title.length}, bodyLength=${body.length}"
+                                }
+                                require(!title.contains("http") && !body.contains("http"))
+                                val combined = "$title $body".lowercase()
+                                require(!combined.contains("before computers") && !combined.contains("first computer"))
+                                NudgeCopy(title, body)
+                            }.getOrNull()
+                            prompt = "Rewrite as valid JSON only: {\"title\":\"under 55 characters\",\"body\":\"under 130 characters\"}. Use only the article facts already supplied."
+                        }
+                    }
+                }
+                val result = checkNotNull(copy) { "Gemma could not produce a complete notification." }
+                DemoState.nudgeTitle = result.title
+                DemoState.nudgeBody = result.body
+                DemoState.copyLatencyMs = SystemClock.elapsedRealtime() - started
+                callback(result, null)
+            } catch (error: Throwable) {
+                Log.e("Elsewhere", "Notification generation failed", error)
+                callback(null, error)
+            } finally {
+                DemoState.busy = false
+                DemoState.save(context)
+            }
         }
     }
 }
