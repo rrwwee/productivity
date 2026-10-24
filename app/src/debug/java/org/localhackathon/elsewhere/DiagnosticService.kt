@@ -21,6 +21,7 @@ class DiagnosticService : Service() {
             .setContentText("On-device development test").build(),
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
         val name = intent?.getStringExtra("classify_file")
+        intent?.getStringExtra("article_id")?.let { ArticleLibrary.select(applicationContext, it) }
         val generateCopy = intent?.getBooleanExtra("generate_copy", false) == true
         ModelRunner.prepare(applicationContext) { error ->
             if (error != null) finishTest()

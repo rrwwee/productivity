@@ -1,0 +1,58 @@
+{
+  "device": "Samsung Galaxy S26 FE / Android 17",
+  "scope": "Prepared-content demo. No live article fetching or editable-rule UI.",
+  "live_voyager": {
+    "status": "A better next thing is waiting in your notifications.",
+    "ready": true,
+    "monitoring": true,
+    "busy": false,
+    "nudged": true,
+    "backend": "GPU",
+    "decision": "NUDGE",
+    "latencyMs": 3401,
+    "checks": 1,
+    "nudgeTitle": "Gold Record in Space? What's on it?",
+    "nudgeBody": "It's a record with music and greetings in 55 languages. Find out what it's actually about.",
+    "copyLatencyMs": 14254,
+    "articleId": "voyager",
+    "articleUrl": "https://science.nasa.gov/mission/voyager/golden-record-contents/"
+  },
+  "live_non_x": {
+    "status": "Nothing to interrupt. Carry on.",
+    "ready": true,
+    "monitoring": true,
+    "busy": false,
+    "nudged": false,
+    "backend": "GPU",
+    "decision": "WAIT",
+    "latencyMs": 2929,
+    "checks": 2,
+    "nudgeTitle": "Gold Record in Space? What's on it?",
+    "nudgeBody": "It's a record with music and greetings in 55 languages. Find out what it's actually about.",
+    "copyLatencyMs": 14254,
+    "articleId": "voyager",
+    "articleUrl": "https://science.nasa.gov/mission/voyager/golden-record-contents/"
+  },
+  "generic_writer_moniac": {
+    "articleId": "moniac",
+    "articleUrl": "https://en.wikipedia.org/wiki/MONIAC",
+    "nudgeTitle": "Water ran a computer? \ud83e\udd2f",
+    "nudgeBody": "Water actually moved through tanks to model entire money flows. See how they did it!",
+    "copyLatencyMs": 13358
+  },
+  "user_confirmed_voyager_link_opens_nasa": true,
+  "ui": "Single Start/Pause primary action, collapsed Demo controls with article selection",
+  "articles": [
+    "moniac",
+    "voyager",
+    "antikythera"
+  ],
+  "stop_cleanup": {
+    "verified_using_minimal_pause_control": true,
+    "model_loaded": false,
+    "monitoring": false,
+    "system_media_projection": null
+  },
+  "minimal_ui_visually_reviewed": true,
+  "apk_signature_verified": true
+}

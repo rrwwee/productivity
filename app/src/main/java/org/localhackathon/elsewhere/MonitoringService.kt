@@ -28,7 +28,6 @@ class MonitoringService : Service() {
         const val SOON = "org.localhackathon.elsewhere.SOON"
         const val RESET = "org.localhackathon.elsewhere.RESET"
         const val INTERVAL_MS = 30_000L
-        const val ARTICLE = "https://en.wikipedia.org/wiki/MONIAC"
         private const val ONGOING = "monitoring"
         private const val NUDGES = "curiosity_v2"
     }
@@ -164,20 +163,21 @@ class MonitoringService : Service() {
                         if (active) {
                             when {
                                 error != null -> DemoState.status = "Check unavailable. We’ll try again in 30 seconds."
-                                decision == "X_FEED" && !DemoState.nudged -> {
+                                decision == "NUDGE" && !DemoState.nudged -> {
                                     generating = true
                                     DemoState.status = "Finding a more interesting next thing…"
-                                    ModelRunner.generateNudge(applicationContext) { copy, failure ->
+                                    val selectedArticle = ArticleLibrary.selected(applicationContext)
+                                    ModelRunner.generateNudge(applicationContext, selectedArticle) { copy, failure ->
                                         Handler(Looper.getMainLooper()).post {
                                             try {
-                                                if (active && copy != null && failure == null) sendNudge(copy)
+                                                if (active && copy != null && failure == null) sendNudge(copy, selectedArticle)
                                                 else if (active) DemoState.status = "Could not prepare a nudge. We’ll try again."
                                                 DemoState.save(this)
                                             } finally { inFlight.set(false) }
                                         }
                                     }
                                 }
-                                decision == "OTHER" -> DemoState.status = "Nothing to interrupt. Carry on."
+                                decision == "WAIT" -> DemoState.status = "Nothing to interrupt. Carry on."
                                 else -> DemoState.status = "No confident match. Carry on."
                             }
                             DemoState.save(this)
@@ -192,9 +192,9 @@ class MonitoringService : Service() {
         }
     }
 
-    private fun sendNudge(copy: NudgeCopy) {
+    private fun sendNudge(copy: NudgeCopy, selectedArticle: PreparedArticle) {
         DemoState.nudged = true
-        val article = Intent(Intent.ACTION_VIEW, Uri.parse(ARTICLE)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val article = Intent(Intent.ACTION_VIEW, Uri.parse(selectedArticle.url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val openArticle = PendingIntent.getActivity(this, 2, article, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         // This copy contains only public article facts, never content from the captured feed.
         // Android otherwise redacts it to the app name while MediaProjection is active.
@@ -217,7 +217,7 @@ class MonitoringService : Service() {
             .addAction(Notification.Action.Builder(null, "See how it worked", openArticle).build()).build()
         getSystemService(NotificationManager::class.java).notify(2, notification)
         DemoState.status = "A better next thing is waiting in your notifications."
-        Log.i("Elsewhere", "Nudge delivered after Gemma X_FEED decision")
+        Log.i("Elsewhere", "Nudge delivered after Gemma NUDGE verdict; article=${selectedArticle.id}")
     }
 
     private fun finishSession(message: String) {

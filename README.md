@@ -2,20 +2,24 @@
 
 A hackathon Android demo that offers something more interesting when you drift into X.
 
-Start a monitoring session, then open the X app or x.com. About every 30 seconds,
-Gemma 4 E2B classifies a reduced-resolution screen image locally. An X feed produces
-one text notification that opens the MONIAC hydraulic computer article. Gemma writes
-the title and body locally, using a supplied set of article facts to create specific curiosity.
-Other screens and uncertain results produce no nudge.
+Tap Start, then open the X app or x.com. About every 30 seconds, Gemma 4 E2B
+applies the prepared interruption rule to a reduced-resolution screen image:
+offer an alternative on X, otherwise stay quiet. A `NUDGE` verdict produces one
+text notification for the selected prepared article. Gemma writes its title and
+body locally from that article's factual brief. `WAIT` and `UNCERTAIN` stay quiet.
+
+The demo includes the MONIAC water computer, Voyager's Golden Record, and the
+Antikythera mechanism. It does not fetch or summarize a website during the demo.
 
 ## Run the demo
 
 1. Install the debug APK and its local model with `scripts/install-demo.sh /path/to/gemma-4-E2B-it.litertlm`.
-2. Open **Elsewhere** and tap **Start a quiet session**. Grant notifications and screen capture.
+2. Open **Elsewhere** and tap **Start**. Grant notifications and screen capture.
 3. Open X or x.com and scroll. The normal interval is 30 seconds. For rehearsal,
-   **Check in 5 seconds** schedules an earlier real image check.
-4. Tap the notification to open the article. **Reset the nudge** permits another
-   nudge within the session. **End session** releases capture and the model.
+   open **Demo controls** and use **Check in 5 seconds** for an earlier real check.
+4. Tap the notification to open the article. **Reset nudge**, under Demo controls,
+   permits another nudge. The article selector chooses the next prepared reading.
+   **Pause** releases capture and the model.
 
 Android shows its screen-sharing indicator during a session. Locking the phone,
 starting another screen-sharing session, or stopping from Android ends capture;
@@ -60,14 +64,15 @@ app's private files directory.
 - `MonitoringService`: one MediaProjection session; attach the image output only
   when a check is due, and detach after a frame. No video encoding or saved frames.
 - `ModelRunner`: serialized model initialization/inference, bounded image tokens,
-  short classification output, and GPU/CPU initialization fallback.
-- `MainActivity`: session controls and local status. A debug-only `classify_file`
+  rule-driven verdicts, article-independent copy generation, and GPU/CPU initialization fallback.
+- `ArticleLibrary`: local fact briefs, URLs, and the prepared plain-language rule.
+- `MainActivity`: one Start/Pause control and collapsed demo tools. A debug-only `classify_file`
   intent allows testing an image staged inside the app's private directory.
 
 Model latency, memory, and thermal behavior must be tested on the actual device.
-This demo recognizes X; it does not establish that all X use is unhealthy or offer
-general behavior assessment. Current work is tracked in
-[Build and verify the Android X-to-article demo](https://github.com/rrwwee/productivity/issues/5).
+The demo rule deliberately treats X as the trigger; it does not establish that
+all X use is unhealthy. The [prepared demo diagram](docs/demo-v2.md) distinguishes
+this from the future share-to-app flow and editable personal rules.
 
 ## Verified on the demo phone
 
@@ -75,10 +80,16 @@ The debug build is installed on the Samsung Galaxy S26 FE running Android 17.
 Live X recognition, locally generated title/body, visible text during capture,
 article opening, a quiet non-X screen, and stopping the session have been checked.
 See `docs/validation/device-check.json` for measurements and user confirmations.
-The final measured run took 2.1 seconds for image classification and 16.4 seconds
-for constrained text generation; timings vary. The 30-second interval is when a
-check starts, not a promise that its notification appears instantly.
+The saved measurements are for the earlier single-article version; additional
+prepared-library checks are recorded separately. Timings vary. The 30-second
+interval is when a check starts, not a promise of an instant notification.
 
 With a real nudge still posted, run `python3 scripts/check-live-notification.py`
 to verify that its title/body match the model output and remain public during
 capture. Run this before tapping or dismissing the notification.
+
+The prepared-content revision is verified in
+`docs/validation/prepared-demo-check.json`: live `NUDGE` on X, `WAIT` on the NASA
+article, generic copy generation for both Voyager and MONIAC, article-link
+confirmation, and Pause cleanup. The third prepared topic is bundled but has
+not had its own on-device copy-generation run.

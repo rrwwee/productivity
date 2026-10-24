@@ -1,0 +1,1 @@
+If the user is using X/Twitter, offer one of the prepared articles as an alternative activity. Otherwise, stay quiet. This demo rule applies to X feeds, profiles, and posts in either the app or a browser. Another app merely mentioning X is not enough. If you cannot confidently identify what is on screen, stay quiet.

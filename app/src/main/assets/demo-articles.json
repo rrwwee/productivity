@@ -1,0 +1,41 @@
+[
+  {
+    "id": "moniac",
+    "title": "A computer that ran on water",
+    "url": "https://en.wikipedia.org/wiki/MONIAC",
+    "facts": [
+      "The MONIAC was a real analog computer that used water moving through tanks, pipes and valves to model money flows in an economy.",
+      "Changing valves represented changes in economic policy.",
+      "People built the machine; water inside it performed the calculations."
+    ],
+    "cautions": "Electronic computers already existed. Do not claim this predicted the future, was the first computer, or existed before computers.",
+    "sources": ["https://en.wikipedia.org/wiki/MONIAC"]
+  },
+  {
+    "id": "voyager",
+    "title": "The record we sent into space",
+    "url": "https://science.nasa.gov/mission/voyager/golden-record-contents/",
+    "facts": [
+      "Both Voyager spacecraft carry a gold-plated phonograph record containing sounds and images from Earth.",
+      "The records include music, natural sounds and spoken greetings in 55 languages.",
+      "The protective cover carries symbolic instructions explaining how to play the record and locate Earth."
+    ],
+    "cautions": "The record is a message intended for a possible finder, not a discovered alien artifact. Do not claim anybody has received or played it.",
+    "sources": [
+      "https://science.nasa.gov/mission/voyager/golden-record-contents/",
+      "https://science.nasa.gov/mission/voyager/golden-record-cover/"
+    ]
+  },
+  {
+    "id": "antikythera",
+    "title": "An ancient machine that tracked the sky",
+    "url": "https://en.wikipedia.org/wiki/Antikythera_mechanism",
+    "facts": [
+      "The Antikythera mechanism is an ancient Greek geared device recovered from a shipwreck.",
+      "It used interlocking gears and dials for astronomical and calendar calculations.",
+      "Researchers determined that its mechanisms could predict solar and lunar eclipses."
+    ],
+    "cautions": "This was an analog astronomical calculator, not a modern electronic or general-purpose computer. Do not invent a precise age, discovery date, or number of gears.",
+    "sources": ["https://www.asme.org/about-asme/engineering-history/landmarks/271-the-antikythera-mechanism"]
+  }
+]

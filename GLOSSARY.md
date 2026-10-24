@@ -15,3 +15,11 @@ _Avoid_: Reward
 **Monitoring session**:
 A period during which the person has chosen to let the app observe their activity and offer nudges.
 _Avoid_: Always-on monitoring
+
+**Interruption rule**:
+A person's plain-language instruction describing when an alternative would be welcome and when the app should stay quiet.
+_Avoid_: Diagnosis, health score
+
+**Prepared article**:
+A saved reading destination accompanied by a factual brief that is ready for the app to use in an invitation.
+_Avoid_: Generated article
