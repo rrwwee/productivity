@@ -16,4 +16,15 @@ class NudgeTextTest {
     @Test fun rejectsFragmentRatherThanPublishingIt() {
         assertNull(NudgeText.completeBody("Water flowing through the"))
     }
+
+    @Test fun doesNotTurnADecimalIntoASentence() {
+        assertNull(NudgeText.completeBody("This device costs 399.99 dollars"))
+        assertEquals("This device costs 399.99 dollars.", NudgeText.completeBody("This device costs 399.99 dollars."))
+    }
+
+    @Test fun abbreviationsDoNotHideAnIncompleteSentence() {
+        assertNull(NudgeText.completeBody("The team worked with Dr. Smith on"))
+        assertNull(NudgeText.completeBody("Researchers in the U.S. were working on"))
+        assertEquals("Dr. Smith explains the machine.", NudgeText.completeBody("Dr. Smith explains the machine."))
+    }
 }
