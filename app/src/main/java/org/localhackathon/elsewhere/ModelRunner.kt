@@ -8,6 +8,8 @@ import com.google.ai.edge.litertlm.*
 import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.Executors
+import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.AtomicLong
 
 object DemoState {
     @Volatile var status = "Ready when you are."
@@ -64,6 +66,29 @@ data class NudgeCopy(val title: String, val body: String)
 object ModelRunner {
     private val worker = Executors.newSingleThreadExecutor()
     private var engine: Engine? = null
+    private val conversationLock = Any()
+    private var activeConversation: Conversation? = null
+    private val cancellationVersion = AtomicLong()
+
+    private fun checkNotCanceled(version: Long) {
+        if (cancellationVersion.get() != version) throw CancellationException("Session ended")
+    }
+
+    private fun <T> withConversation(current: Engine, config: ConversationConfig, version: Long,
+        block: (Conversation) -> T): T {
+        checkNotCanceled(version)
+        return current.createConversation(config).use { conversation ->
+            synchronized(conversationLock) {
+                checkNotCanceled(version)
+                activeConversation = conversation
+            }
+            try {
+                block(conversation).also { checkNotCanceled(version) }
+            } finally {
+                synchronized(conversationLock) { activeConversation = null }
+            }
+        }
+    }
     const val MODEL_NAME = "gemma-4-E2B-it.litertlm"
     private val COPY_INSTRUCTION =
         "Write a punchy reason to read this saved article instead of scrolling. " +
@@ -137,6 +162,7 @@ object ModelRunner {
     fun classify(context: Context, jpeg: ByteArray, ruleOverride: String? = null,
         episodeActive: Boolean = false,
         callback: (String?, Throwable?) -> Unit) {
+        val version = cancellationVersion.get()
         worker.execute {
             DemoState.busy = true
             val started = SystemClock.elapsedRealtime()
@@ -155,7 +181,7 @@ object ModelRunner {
                     maxOutputToken = 24,
                     thinkingConfig = ThinkingConfig(enableThinking = false, thinkingTokenBudget = 0)
                 )
-                val text = current.createConversation(config).use { conversation ->
+                val text = withConversation(current, config, version) { conversation ->
                     conversation.sendMessage(Contents.of(
                         Content.ImageBytes(jpeg),
                         Content.Text("User rule:\n${ruleOverride ?: ArticleLibrary.rule(context)}\n\n" +
@@ -189,6 +215,10 @@ object ModelRunner {
     }
 
     fun release(context: Context) {
+        synchronized(conversationLock) {
+            cancellationVersion.incrementAndGet()
+            activeConversation?.let { runCatching { it.cancelProcess() } }
+        }
         worker.execute {
             engine?.let { runCatching { if (it.isInitialized()) it.close() } }
             engine = null
@@ -201,6 +231,7 @@ object ModelRunner {
         previousInvitations: List<NudgeCopy> = emptyList(),
         instructionOverride: String? = null,
         callback: (NudgeCopy?, Throwable?) -> Unit) {
+        val version = cancellationVersion.get()
         worker.execute {
             DemoState.busy = true
             val started = SystemClock.elapsedRealtime()
@@ -225,12 +256,13 @@ object ModelRunner {
                     "additionalProperties":false
                 }""")
                 var copy: NudgeCopy? = null
-                current.createConversation(config).use { conversation ->
+                withConversation(current, config, version) { conversation ->
                     var prompt = "Prepared article data:\n${article.promptData()}\n\n" +
                         "Previous invitations this episode (not proof that the user read them):\n" +
                         previousInvitations.joinToString("\n") { "${it.title} — ${it.body}" } +
                         "\nWrite a fresh body for the headline STOP. Read this instead. Tapping opens the article."
                     repeat(2) {
+                        checkNotCanceled(version)
                         if (copy == null) {
                             val response = conversation.sendMessage(prompt, maxOutputToken = 160, responseFormat = format).toString()
                             copy = runCatching {

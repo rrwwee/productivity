@@ -40,6 +40,7 @@ class MonitoringService : Service() {
     @Volatile private var active = false
     @Volatile private var epoch = 0L
     private val episode = NudgeEpisode()
+    private var modelReleaseRequested = false
     private var requestingFrame = false
     private var frameRequestedAt = 0L
     private val samplingLoop = object : Runnable {
@@ -103,7 +104,12 @@ class MonitoringService : Service() {
             .addAction(Notification.Action.Builder(null, "Stop", stop).build()).build()
         startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
         try {
-            val data = intent.getParcelableExtra("captureData", Intent::class.java)
+            @Suppress("DEPRECATION")
+            val data = (if (Build.VERSION.SDK_INT >= 33) {
+                intent.getParcelableExtra("captureData", Intent::class.java)
+            } else {
+                intent.getParcelableExtra<Intent>("captureData")
+            })
                 ?: error("Screen capture permission was missing.")
             val currentProjection = checkNotNull(getSystemService(MediaProjectionManager::class.java)
                 .getMediaProjection(intent.getIntExtra("captureResult", Activity.RESULT_CANCELED), data)) {
@@ -261,7 +267,12 @@ class MonitoringService : Service() {
     }
 
     private fun finishSession(message: String) {
-        if (!active && projection == null) { stopSelf(); return }
+        if (!active && projection == null) {
+            DemoState.status = message
+            releaseModel()
+            stopSelf()
+            return
+        }
         active = false; DemoState.monitoring = false
         epoch++
         episode.clear()
@@ -274,7 +285,7 @@ class MonitoringService : Service() {
         oldProjection?.stop()
         DemoState.status = message
         DemoState.save(this)
-        ModelRunner.release(applicationContext)
+        releaseModel()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -287,8 +298,16 @@ class MonitoringService : Service() {
         getSystemService(NotificationManager::class.java).cancel(2)
         captureHandler.removeCallbacks(samplingLoop)
         display?.release(); reader?.close(); projection?.stop(); projection = null
+        releaseModel()
+        DemoState.save(this)
         captureThread.quitSafely()
         super.onDestroy()
+    }
+    private fun releaseModel() {
+        if (!modelReleaseRequested) {
+            modelReleaseRequested = true
+            ModelRunner.release(applicationContext)
+        }
     }
     override fun onBind(intent: Intent?) = null
 }

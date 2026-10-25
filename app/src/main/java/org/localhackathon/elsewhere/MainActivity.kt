@@ -139,7 +139,10 @@ class MainActivity : Activity() {
         if (requestCode == 12 && resultCode == RESULT_OK && data != null) {
             startForegroundService(Intent(this, MonitoringService::class.java).setAction(MonitoringService.START)
                 .putExtra("captureResult", resultCode).putExtra("captureData", data))
-        } else if (requestCode == 12) DemoState.status = "Screen sharing was not started."
+        } else if (requestCode == 12) {
+            DemoState.status = "Screen sharing was not started."
+            if (!DemoState.monitoring) ModelRunner.release(applicationContext)
+        }
     }
 
     private fun command(action: String) {

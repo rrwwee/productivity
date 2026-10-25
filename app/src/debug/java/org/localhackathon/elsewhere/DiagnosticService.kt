@@ -15,11 +15,13 @@ class DiagnosticService : Service() {
         getSystemService(NotificationManager::class.java).createNotificationChannel(
             NotificationChannel("diagnostics", "Development checks", NotificationManager.IMPORTANCE_LOW)
         )
-        startForeground(3, Notification.Builder(this, "diagnostics")
+        val notification = Notification.Builder(this, "diagnostics")
             .setSmallIcon(android.R.drawable.ic_menu_info_details)
             .setContentTitle("Checking local Gemma")
-            .setContentText("On-device development test").build(),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
+            .setContentText("On-device development test").build()
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+            startForeground(3, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
+        } else startForeground(3, notification)
         val name = intent?.getStringExtra("classify_file")
         intent?.getStringExtra("article_id")?.let { ArticleLibrary.select(applicationContext, it) }
         val generateCopy = intent?.getBooleanExtra("generate_copy", false) == true
