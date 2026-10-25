@@ -7,8 +7,8 @@ Antikythera mechanism. Sources are recorded alongside each fact brief in
 `app/src/main/assets/demo-articles.json`.
 
 Gemma receives the plain-language instruction from
-`app/src/main/assets/demo-rule.txt`: offer an alternative for an X feed,
-but stay quiet for composers, conversations, articles, and other activities. It returns `NUDGE`, `WAIT`, or `UNCERTAIN`. The app enforces
+`app/src/main/assets/demo-rule.txt`: offer an alternative for social-media browsing,
+but stay quiet while writing, communicating, or reading an article. It returns `NUDGE`, `WAIT`, or `UNCERTAIN`. The app enforces
 one job at a time and one nudge per session/reset, while Gemma interprets the rule.
 
 ```mermaid

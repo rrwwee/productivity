@@ -207,8 +207,9 @@ class MainActivity : Activity() {
         // ADB can stage a test image in this debuggable app's private directory.
         val file = File(filesDir, fixture).canonicalFile
         if (file.parentFile != filesDir.canonicalFile || !file.isFile) return
+        val ruleOverride = intent.getStringExtra("classify_rule")
         ModelRunner.prepare(this) { error ->
-            if (error == null) ModelRunner.classify(applicationContext, file.readBytes()) { decision, failure ->
+            if (error == null) ModelRunner.classify(applicationContext, file.readBytes(), ruleOverride) { decision, failure ->
                 DemoState.status = if (failure == null) "Vision test: $decision" else "Vision test failed: ${failure.message}"
                 DemoState.save(this)
             }

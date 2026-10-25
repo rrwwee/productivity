@@ -119,7 +119,8 @@ object ModelRunner {
         }
     }
 
-    fun classify(context: Context, jpeg: ByteArray, callback: (String?, Throwable?) -> Unit) {
+    fun classify(context: Context, jpeg: ByteArray, ruleOverride: String? = null,
+        callback: (String?, Throwable?) -> Unit) {
         worker.execute {
             DemoState.busy = true
             val started = SystemClock.elapsedRealtime()
@@ -139,7 +140,7 @@ object ModelRunner {
                 val text = current.createConversation(config).use { conversation ->
                     conversation.sendMessage(Contents.of(
                         Content.ImageBytes(jpeg),
-                        Content.Text("User rule:\n${ArticleLibrary.rule(context)}\n\n" +
+                        Content.Text("User rule:\n${ruleOverride ?: ArticleLibrary.rule(context)}\n\n" +
                             "Apply that rule to this screenshot. Return NUDGE, WAIT, or UNCERTAIN only.")
                     ), maxOutputToken = 24).toString()
                 }

@@ -1,5 +1,9 @@
 # Context-sensitive interruption rule
 
+Historical detailed-rule cases: the current shorter policy and its comparison
+are recorded in `short-rule-experiment.md`. The expectations below describe
+the former rule, not guarantees of the new broader policy.
+
 Status: empty X composer, X feed (twice), and Wikipedia article passed on the
 installed build. See `context-cache-check.json`. Other cases in the table remain
 expectations, not verified claims. The earlier `prepared-demo-check.json` exercised

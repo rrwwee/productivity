@@ -1,10 +1,10 @@
 # Elsewhere
 
-A hackathon Android demo that offers something more interesting when you drift into X.
+A hackathon Android demo that offers something more interesting when you drift into a social feed.
 
 Tap Start, then open the X app or x.com. About every 30 seconds, Gemma 4 E2B
 applies the prepared interruption rule to a reduced-resolution screen image:
-offer an alternative for an X feed, but leave writing, conversations, articles,
+offer an alternative for a social media feed, but leave writing, conversations, articles,
 and other activities alone. A `NUDGE` verdict produces one text notification for
 the selected prepared article. Gemma writes its title and body locally before
 screen sharing starts; validated invitations are cached for reuse. `WAIT` and
@@ -74,7 +74,7 @@ app's private files directory.
   intent allows testing an image staged inside the app's private directory.
 
 Model latency, memory, and thermal behavior must be tested on the actual device.
-The demo rule distinguishes passive X feeds from composing and conversations;
+The demo rule distinguishes social feeds from writing, conversations, and reading;
 it does not establish whether any activity is healthy or infer time spent. The [prepared demo diagram](docs/demo-v2.md) distinguishes
 this from the future share-to-app flow and editable personal rules.
 
@@ -106,3 +106,9 @@ The first invitation still requires generation before capture starts. These
 are individual measurements, not performance guarantees.
 
 See [the submission description and three-minute demo](docs/submission.md).
+
+The current [short interruption rule](app/src/main/assets/demo-rule.txt) uses general
+activity language, with no X-specific or composer-specific instructions. It
+matched the detailed baseline on six exploratory phone screenshots; see
+[the prompt comparison](docs/validation/short-rule-experiment.md). This does not
+establish broad accuracy across apps.

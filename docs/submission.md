@@ -12,7 +12,7 @@ Main track: **Mobile AI**. Also identify the actual use of **LiteRT-LM with GPU 
 
 Screen-time limits count minutes. Elsewhere offers a reason to spend the next minute differently.
 
-During a monitoring session, Elsewhere samples the screen every 30 seconds and runs Gemma 4 E2B locally to apply a plain-language interruption rule. The demo distinguishes an X feed from an open post composer: it offers an alternative for the feed and stays quiet while writing. Gemma writes the article invitation locally ahead of time and caches it; live visual judgment decides when to offer it. One tap opens the source. Three prepared article briefs supply the reading choices rather than live web extraction.
+During a monitoring session, Elsewhere samples the screen every 30 seconds and runs Gemma 4 E2B locally to apply a short plain-language interruption rule. The demo distinguishes an X feed from an open post composer: it offers an alternative for the feed and stays quiet while writing. Gemma writes the article invitation locally ahead of time and caches it; live visual judgment decides when to offer it. One tap opens the source. Three prepared article briefs supply the reading choices rather than live web extraction.
 
 Built in Kotlin for Android, Elsewhere runs Gemma through LiteRT-LM with GPU acceleration on a Samsung Galaxy S26 FE. Screen images are processed on the phone and discarded. The app has no Internet permission; opening an article uses the browser and may require connectivity.
 
@@ -95,3 +95,11 @@ Have the video ready on the laptop. If the live run fails, say **“Here is a re
 - **Does it run all day?** The prototype runs while a user-authorized monitoring session remains active. All-day battery and thermal behavior have not been established.
 - **Are these arbitrary articles from the web?** Today there are three prepared factual briefs. Share ingestion and extraction are next steps.
 - **Does it block X?** No. A nudge offers an alternative; the person decides whether to open it.
+
+## Short-rule update
+
+The installed rule now refers to social feeds, writing, communicating, and reading.
+It contains no X-specific composer instructions. A six-screenshot exploratory
+comparison matched the detailed rule, including a post composer, reply composer,
+two feed views, and two article views. See `validation/short-rule-experiment.md`.
+This is limited evidence, not a general claim of accurate intent recognition.
