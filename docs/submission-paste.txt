@@ -8,3 +8,5 @@ The demo uses three prepared readings: Stanford research on the brain's developm
 
 Repository: https://github.com/rrwwee/productivity
 Tracks: Mobile AI; Best Use of LiteRT
+
+Demo: https://rrwwee.github.io/productivity/
