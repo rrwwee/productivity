@@ -64,6 +64,21 @@ this is a device setting, not an app-controlled timer. It can also affect other
 temporary controls. Restore **Default** in that setting after the demo; the prior
 ADB setting was unset (`accessibility_interactive_ui_timeout_ms`).
 
+## Present on a projector
+
+Connect the phone to the Mac by USB, and connect the Mac to the projector by
+HDMI or a USB-C display adapter. Install [scrcpy](https://github.com/Genymobile/scrcpy)
+with `brew install scrcpy`, then run:
+
+```sh
+./scripts/mirror-demo.sh
+```
+
+Move the **Elsewhere — Live demo** window to the projector display and press
+**Cmd+F** to toggle fullscreen. Use the physical phone normally; the launcher
+does not forward laptop input or phone audio. Closing the mirror does not pause
+Elsewhere. The phone's USB debugging authorization is required.
+
 ## Build
 
 The project uses Java 21, Gradle 8.13, Android Gradle Plugin 8.13.2, Kotlin 2.4.0,
