@@ -25,7 +25,25 @@ The demo includes Stanford's brain-origins research, Microduck, and the original
    discards the current episode without stopping checks. The article selector chooses the next prepared reading.
    **Pause** releases capture and the model.
 
-Android shows its screen-sharing indicator during a session. Locking the phone,
+### Auto-resume during daily use
+
+Tap **Enable auto-resume**, read the screenshot-access disclosure, and enable
+**Elsewhere auto-resume** under Android **Accessibility → Installed apps**.
+This optional mode uses Accessibility's screenshot API, not a MediaProjection
+session. It takes the same reduced-resolution frames through the same local
+Gemma pipeline; it does not request view-tree access or perform gestures.
+
+Checks pause and release the model while the device is locked. Unlocking prepares
+the model and resumes checks without another screen-sharing prompt. Swiping
+Elsewhere away from Recents does not stop its foreground monitoring service.
+Tap **Pause** in Elsewhere to stop; tapping **Start** resumes the selected mode.
+Disable the Accessibility service to revoke screenshot access. **Use one-session
+mode** in the auto-resume dialog restores the original capture flow.
+
+Android's explicit **Force stop**, power-off, or permission removal can stop the
+app. A persistent monitoring notification makes the background session visible.
+
+In the original one-session mode, Android shows its screen-sharing indicator. Locking the phone,
 starting another screen-sharing session, or stopping from Android ends capture;
 starting again requires permission. There are no screenshot animations or gallery
 writes. Screen images remain in memory and are discarded after processing.
@@ -66,7 +84,10 @@ app's private files directory.
 ## Implementation
 
 - `MonitoringService`: one MediaProjection session; attach the image output only
-  when a check is due, and detach after a frame. No video encoding or saved frames.
+  when a check is due, and detach after a frame; alternatively request individual
+  Accessibility screenshots with lock-aware pause/resume. No video encoding or saved frames.
+- `AttentionAccessibilityService`: optional user-enabled screenshot access. No
+  view-tree access, input injection, or gesture actions.
 - `ModelRunner`: serialized model initialization/inference, bounded image tokens,
   rule-driven verdicts, article-independent copy generation, and GPU/CPU initialization fallback.
 - `ArticleLibrary`: local fact briefs, URLs, and the prepared plain-language rule.
@@ -97,7 +118,7 @@ The app is installed on the Samsung Galaxy S26 FE running Android 17.
   that Shorts case plus X, a composer, and an article. See
   `docs/validation/youtube-rule-check.json`. These are small exploratory samples,
   not general accuracy estimates.
-- Six unit tests cover episode history, completion/reset, stale-result rejection,
+- Eight unit tests cover episode history, completion/reset, stale-result rejection,
   and complete notification sentences. Build and read-only integration review passed.
 
 Checks target 15-second slots. Long inference skips slots rather than overlapping

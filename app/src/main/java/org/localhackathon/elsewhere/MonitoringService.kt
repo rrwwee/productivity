@@ -27,6 +27,8 @@ class MonitoringService : Service() {
         const val STOP = "org.localhackathon.elsewhere.STOP"
         const val SOON = "org.localhackathon.elsewhere.SOON"
         const val RESET = "org.localhackathon.elsewhere.RESET"
+        const val AUTO_START = "org.localhackathon.elsewhere.AUTO_START"
+        const val AUTO_UNAVAILABLE = "org.localhackathon.elsewhere.AUTO_UNAVAILABLE"
         const val INTERVAL_MS = 15_000L
         private const val ONGOING = "monitoring"
         private const val NUDGES = "curiosity_v2"
@@ -41,12 +43,19 @@ class MonitoringService : Service() {
     @Volatile private var epoch = 0L
     private val episode = NudgeEpisode()
     private var modelReleaseRequested = false
+    private var autoCapture = false
+    private var modelPreparing = false
+    private var modelRetryAt = 0L
     private var requestingFrame = false
     private var frameRequestedAt = 0L
     private val samplingLoop = object : Runnable {
         override fun run() {
             if (!active) return
             val now = SystemClock.elapsedRealtime()
+            if (autoCapture && !prepareUnlockedAutoCapture(now)) {
+                captureHandler.postDelayed(this, 1000)
+                return
+            }
             if (requestingFrame && now - frameRequestedAt > 5_000) {
                 display?.surface = null
                 requestingFrame = false
@@ -56,7 +65,7 @@ class MonitoringService : Service() {
             if (!requestingFrame && DemoState.ready && !inFlight.get() && now >= DemoState.nextCheckAt) {
                 requestingFrame = true
                 frameRequestedAt = now
-                display?.surface = reader?.surface
+                if (autoCapture) requestAccessibilityFrame() else display?.surface = reader?.surface
             }
             captureHandler.postDelayed(this, 250)
         }
@@ -76,12 +85,20 @@ class MonitoringService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            STOP -> { finishSession("Session ended. See you next time."); return START_NOT_STICKY }
+        val action = intent?.action ?: if (AutoResume.requested(this)) AUTO_START else null
+        when (action) {
+            STOP -> {
+                AutoResume.setRequested(this, false)
+                finishSession("Session ended. See you next time."); return START_NOT_STICKY
+            }
+            AUTO_UNAVAILABLE -> {
+                if (autoCapture) finishSession("Auto-resume permission was disabled.")
+                return START_NOT_STICKY
+            }
             SOON -> {
                 if (active) { DemoState.nextCheckAt = SystemClock.elapsedRealtime() + 5_000; DemoState.status = "Next check in 5 seconds." }
                 DemoState.save(this)
-                return START_NOT_STICKY
+                return if (autoCapture) START_STICKY else START_NOT_STICKY
             }
             RESET -> {
                 epoch++
@@ -91,19 +108,37 @@ class MonitoringService : Service() {
                 getSystemService(NotificationManager::class.java).cancel(2)
                 if (active) { DemoState.nextCheckAt = SystemClock.elapsedRealtime() + INTERVAL_MS; DemoState.status = "Ready for another moment." }
                 DemoState.save(this)
-                return START_NOT_STICKY
+                return if (autoCapture) START_STICKY else START_NOT_STICKY
             }
         }
-        if (active || intent == null) return START_NOT_STICKY
+        if (active) return if (autoCapture) START_STICKY else START_NOT_STICKY
+        if (action == null) { stopSelf(); return START_NOT_STICKY }
+        autoCapture = action == AUTO_START
+        if (autoCapture && (!AutoResume.requested(this) || !AutoResume.permissionEnabled(this))) {
+            stopSelf(); return START_NOT_STICKY
+        }
+        DemoState.autoResume = autoCapture
         val returnToApp = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val stop = PendingIntent.getService(this, 1, Intent(this, MonitoringService::class.java).setAction(STOP), PendingIntent.FLAG_IMMUTABLE)
         val notification = Notification.Builder(this, ONGOING)
             .setSmallIcon(android.R.drawable.ic_menu_view).setContentTitle("Elsewhere is here")
-            .setContentText("Private checks every 15 seconds. Tap to return.")
+            .setContentText(if (autoCapture) "Auto-resume on. Private checks while unlocked." else "Private checks every 15 seconds. Tap to return.")
             .setContentIntent(returnToApp).setOngoing(true).setOnlyAlertOnce(true)
             .addAction(Notification.Action.Builder(null, "Stop", stop).build()).build()
+        if (autoCapture) {
+            if (Build.VERSION.SDK_INT >= 34) startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            else startForeground(1, notification)
+            active = true
+            DemoState.monitoring = true
+            DemoState.pausedForLock = false
+            DemoState.nextCheckAt = SystemClock.elapsedRealtime() + 1000
+            captureHandler.post(samplingLoop)
+            DemoState.save(this)
+            return START_STICKY
+        }
         startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
         try {
+            checkNotNull(intent)
             @Suppress("DEPRECATION")
             val data = (if (Build.VERSION.SDK_INT >= 33) {
                 intent.getParcelableExtra("captureData", Intent::class.java)
@@ -155,10 +190,6 @@ class MonitoringService : Service() {
     }
 
     private fun considerFrame(image: Image) {
-        if (!active || !DemoState.ready ||
-            SystemClock.elapsedRealtime() < DemoState.nextCheckAt || !inFlight.compareAndSet(false, true)) return
-        DemoState.nextCheckAt = SystemClock.elapsedRealtime() + INTERVAL_MS
-        val runEpoch = epoch
         try {
             val plane = image.planes[0]
             val paddedWidth = plane.rowStride / plane.pixelStride
@@ -170,6 +201,22 @@ class MonitoringService : Service() {
             val bytes = stream.toByteArray()
             if (cropped !== padded) cropped.recycle()
             padded.recycle(); stream.close()
+            considerBytes(bytes)
+        } catch (error: Throwable) {
+            DemoState.status = "Could not read this frame. We’ll try again."
+            Log.w("Elsewhere", "Frame conversion failed", error)
+        }
+    }
+
+    private fun considerBytes(bytes: ByteArray) {
+        if (!active || !DemoState.ready || (autoCapture && !AutoResume.unlocked(this)) ||
+            SystemClock.elapsedRealtime() < DemoState.nextCheckAt || !inFlight.compareAndSet(false, true)) {
+            bytes.fill(0)
+            return
+        }
+        DemoState.nextCheckAt = SystemClock.elapsedRealtime() + INTERVAL_MS
+        val runEpoch = epoch
+        try {
             DemoState.status = "Checking this moment, privately…"
             ModelRunner.classify(applicationContext, bytes, episodeActive = episode.id != null) { decision, error ->
                 Handler(Looper.getMainLooper()).post {
@@ -222,6 +269,75 @@ class MonitoringService : Service() {
         }
     }
 
+    private fun prepareUnlockedAutoCapture(now: Long): Boolean {
+        if (!AutoResume.unlocked(this)) {
+            if (!DemoState.pausedForLock) {
+                DemoState.pausedForLock = true
+                epoch++
+                episode.clear(); syncEpisodeState()
+                requestingFrame = false
+                getSystemService(NotificationManager::class.java).cancel(2)
+                DemoState.status = "Paused while locked. Resumes after unlock."
+                releaseModel()
+                DemoState.save(this)
+            }
+            return false
+        }
+        if (DemoState.pausedForLock) {
+            DemoState.pausedForLock = false
+            DemoState.nextCheckAt = now + 1000
+            DemoState.save(this)
+        }
+        if ((!DemoState.ready || modelReleaseRequested) && !modelPreparing && now >= modelRetryAt) {
+            modelPreparing = true
+            modelReleaseRequested = false
+            val runEpoch = epoch
+            ModelRunner.prepare(applicationContext) { error ->
+                captureHandler.post {
+                    modelPreparing = false
+                    if (active && epoch == runEpoch) {
+                        if (error != null) modelRetryAt = SystemClock.elapsedRealtime() + 30_000
+                        else DemoState.status = "Auto-resume on. Checking quietly."
+                        DemoState.save(this)
+                    }
+                }
+            }
+        }
+        return DemoState.ready && !modelPreparing && !modelReleaseRequested
+    }
+
+    private fun requestAccessibilityFrame() {
+        val service = AttentionAccessibilityService.connected
+        if (service == null) {
+            requestingFrame = false
+            DemoState.nextCheckAt = SystemClock.elapsedRealtime() + INTERVAL_MS
+            DemoState.status = "Waiting for auto-resume permission."
+            DemoState.save(this)
+            return
+        }
+        val runEpoch = epoch
+        try {
+            service.capture(java.util.concurrent.Executor { captureHandler.post(it) }) { bytes, error ->
+                requestingFrame = false
+                if (bytes != null) {
+                    if (active && epoch == runEpoch) considerBytes(bytes) else bytes.fill(0)
+                } else {
+                    DemoState.nextCheckAt = SystemClock.elapsedRealtime() + INTERVAL_MS
+                    if (active && epoch == runEpoch) {
+                        DemoState.status = error ?: "No frame available. We’ll try again."
+                        DemoState.save(this)
+                    }
+                }
+            }
+        } catch (error: Exception) {
+            requestingFrame = false
+            DemoState.nextCheckAt = SystemClock.elapsedRealtime() + INTERVAL_MS
+            DemoState.status = "Screen capture unavailable. We’ll try again."
+            DemoState.save(this)
+            Log.w("Elsewhere", "Accessibility capture failed", error)
+        }
+    }
+
     private fun finishCheck() {
         // Skip missed slots if generation took longer than the sampling interval.
         val now = SystemClock.elapsedRealtime()
@@ -238,6 +354,7 @@ class MonitoringService : Service() {
     }
 
     private fun sendNudge(copy: NudgeCopy, selectedArticle: PreparedArticle) {
+        if (autoCapture && !AutoResume.unlocked(this)) return
         DemoState.totalNudges++
         DemoState.lastNudgeAt = SystemClock.elapsedRealtime()
         val article = Intent(Intent.ACTION_VIEW, Uri.parse(selectedArticle.url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -274,6 +391,7 @@ class MonitoringService : Service() {
             return
         }
         active = false; DemoState.monitoring = false
+        DemoState.pausedForLock = false
         epoch++
         episode.clear()
         syncEpisodeState()
@@ -292,6 +410,7 @@ class MonitoringService : Service() {
 
     override fun onDestroy() {
         active = false; DemoState.monitoring = false
+        DemoState.pausedForLock = false
         epoch++
         episode.clear()
         syncEpisodeState()

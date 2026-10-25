@@ -1,0 +1,3 @@
+<resources>
+    <string name="attention_accessibility_description">Optional auto-resume: Elsewhere checks a screenshot every 15 seconds while your phone is unlocked. Gemma processes it on this phone to decide whether to suggest an article, then deletes the screenshot. It does not read the accessibility view tree, type, or tap for you. Pause in Elsewhere or disable this service to stop.</string>
+</resources>

@@ -15,6 +15,8 @@ object DemoState {
     @Volatile var status = "Ready when you are."
     @Volatile var ready = false
     @Volatile var monitoring = false
+    @Volatile var autoResume = false
+    @Volatile var pausedForLock = false
     @Volatile var busy = false
     @Volatile var nudged = false
     @Volatile var backend = ""
@@ -40,6 +42,7 @@ object DemoState {
         val report = JSONObject().apply {
             put("status", status); put("ready", ready); put("monitoring", monitoring)
             put("busy", busy); put("nudged", nudged); put("backend", backend)
+            put("autoResume", autoResume); put("pausedForLock", pausedForLock)
             put("decision", lastDecision); put("latencyMs", latencyMs); put("checks", checks)
             put("nudgeTitle", nudgeTitle); put("nudgeBody", nudgeBody); put("copyLatencyMs", copyLatencyMs)
             put("articleId", articleId); put("articleUrl", articleUrl)

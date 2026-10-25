@@ -16,6 +16,11 @@ _Avoid_: Reward
 A period during which the person has chosen to let the app observe their activity and offer nudges.
 _Avoid_: Always-on monitoring
 
+**Auto-resume mode**:
+A user-enabled monitoring mode that uses Accessibility screenshots while unlocked,
+pauses while locked, and resumes after unlock until the person pauses it. It does
+not require a new MediaProjection approval after each unlock.
+
 **Interruption rule**:
 A person's plain-language instruction describing when an alternative would be welcome and when the app should stay quiet.
 _Avoid_: Diagnosis, health score

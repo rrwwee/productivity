@@ -3,6 +3,8 @@ package org.localhackathon.elsewhere
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.provider.Settings
+import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
@@ -23,6 +25,7 @@ class MainActivity : Activity() {
     private lateinit var soon: Button
     private lateinit var reset: Button
     private lateinit var articleSelector: Spinner
+    private lateinit var autoResumeButton: Button
     private val ink = Color.rgb(30, 54, 45)
     private val paper = Color.rgb(246, 245, 237)
     private var preparing = false
@@ -72,6 +75,7 @@ class MainActivity : Activity() {
         start = button("Start", true) {
             if (DemoState.monitoring) command(MonitoringService.STOP) else begin()
         }
+        autoResumeButton = button("Enable auto-resume") { setupAutoResume() }
         space(10)
         val controls = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; visibility = View.GONE }
         button("Demo controls") {
@@ -100,7 +104,7 @@ class MainActivity : Activity() {
         reset = demoButton("Reset episode") { command(MonitoringService.RESET) }
         controls.addView(text("Demo rule", 14f, true).apply { setPadding(0, dp(18), 0, dp(8)) })
         controls.addView(text(ArticleLibrary.rule(this), 13f))
-        controls.addView(text("Checks run every 15 seconds. Android shows a sharing indicator. Locking the phone or starting another screen share ends the session.", 12f)
+        controls.addView(text("Checks run every 15 seconds. Auto-resume pauses while locked and continues after unlock. One-session mode ends when the phone locks.", 12f)
             .apply { setPadding(0, dp(18), 0, 0) })
         space(28)
         column.addView(text("Private, on-device screen checks.\nYou can leave this screen after starting.", 13f))
@@ -112,6 +116,13 @@ class MainActivity : Activity() {
         if (android.os.Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 11)
+            return
+        }
+        if (AutoResume.selected(this)) {
+            if (AutoResume.permissionEnabled(this)) {
+                AutoResume.setRequested(this, true)
+                startForegroundService(Intent(this, MonitoringService::class.java).setAction(MonitoringService.AUTO_START))
+            } else setupAutoResume()
             return
         }
         preparing = true
@@ -130,8 +141,40 @@ class MainActivity : Activity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 13) {
+            if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) setupAutoResume()
+            else DemoState.status = "Notifications are needed to offer you a nudge."
+            return
+        }
         if (requestCode == 11 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) begin()
         else DemoState.status = "Notifications are needed to offer you a nudge."
+    }
+
+    private fun setupAutoResume() {
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 13)
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Auto-resume after unlock")
+            .setMessage("Allow Elsewhere’s Accessibility service to take a screenshot every 15 seconds while your phone is unlocked. Gemma processes each screenshot on this phone to suggest a better activity, then deletes it. Screenshots are never uploaded.\n\nThis does not read the accessibility view tree, type, or tap for you. Checks pause while locked and resume after unlock, even after you close Elsewhere. Tap Pause in Elsewhere to stop.\n\nEnable ‘Elsewhere auto-resume’ under Installed apps in Accessibility settings.")
+            .setPositiveButton("Enable auto-resume") { _, _ ->
+                if (DemoState.monitoring && !DemoState.autoResume) command(MonitoringService.STOP)
+                AutoResume.select(this, true)
+                AutoResume.setRequested(this, true)
+                if (AutoResume.permissionEnabled(this)) {
+                    startForegroundService(Intent(this, MonitoringService::class.java).setAction(MonitoringService.AUTO_START))
+                } else startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+            .setNeutralButton("Use one-session mode") { _, _ ->
+                if (DemoState.monitoring) command(MonitoringService.STOP)
+                AutoResume.select(this, false)
+                AutoResume.setRequested(this, false)
+                render()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -163,12 +206,14 @@ class MainActivity : Activity() {
             error != null -> "Needs your attention."
             !ModelRunner.modelFile(this).isFile -> "Waiting for the local model."
             preparing || (DemoState.busy && !DemoState.ready) -> "Getting ready…"
+            DemoState.monitoring && DemoState.pausedForLock -> "Paused while locked."
             DemoState.busy -> "Finding your next thing…"
             DemoState.monitoring && DemoState.nudged -> "A better next thing is waiting."
             DemoState.monitoring -> "Watching quietly."
             else -> "Ready when you are."
         }
         start.text = if (DemoState.monitoring) "Pause" else "Start"
+        autoResumeButton.text = if (AutoResume.selected(this) && AutoResume.permissionEnabled(this)) "Auto-resume settings" else "Enable auto-resume"
         start.isEnabled = DemoState.monitoring || (!preparing && !DemoState.busy)
         soon.isEnabled = DemoState.monitoring && !DemoState.busy
         reset.isEnabled = !DemoState.busy
@@ -177,17 +222,24 @@ class MainActivity : Activity() {
         detail.text = when {
             error != null -> error
             !filePresent -> "Waiting for the local model to be installed."
+            DemoState.monitoring && DemoState.pausedForLock -> "Checks resume automatically after you unlock."
             DemoState.busy -> "Gemma is working entirely on this phone."
             DemoState.monitoring && DemoState.nudged -> "${DemoState.episodeNudges} invitation(s) this episode. Checks continue every 15 seconds."
             DemoState.monitoring -> {
                 val seconds = ((DemoState.nextCheckAt - SystemClock.elapsedRealtime()).coerceAtLeast(0) / 1000) + 1
-                "Next check in ${seconds}s. You can use your phone normally."
+                "Next check in ${seconds}s. " + if (DemoState.autoResume) "Auto-resume is on." else "You can use your phone normally."
             }
             else -> "Your model is on-device. Start when you’re ready."
         }
     }
 
-    override fun onResume() { super.onResume(); ui.post(tick) }
+    override fun onResume() {
+        super.onResume()
+        if (AutoResume.requested(this) && AutoResume.permissionEnabled(this) && !DemoState.monitoring) {
+            startForegroundService(Intent(this, MonitoringService::class.java).setAction(MonitoringService.AUTO_START))
+        }
+        ui.post(tick)
+    }
     override fun onPause() { ui.removeCallbacks(tick); super.onPause() }
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); handleDebugIntent(intent) }
     private fun handleDebugIntent(intent: Intent?) {
