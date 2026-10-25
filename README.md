@@ -2,13 +2,13 @@
 
 A hackathon Android demo that offers something more interesting when you drift into a social feed.
 
-Tap Start, then open the X app or x.com. About every 30 seconds, Gemma 4 E2B
-applies the prepared interruption rule to a reduced-resolution screen image:
-offer an alternative for a social media feed, but leave writing, conversations, articles,
-and other activities alone. A `NUDGE` verdict produces one text notification for
-the selected prepared article. Gemma writes its title and body locally before
-screen sharing starts; validated invitations are cached for reuse. `WAIT` and
-`UNCERTAIN` stay quiet.
+Tap Start, then use your phone normally. About every 15 seconds, Gemma 4 E2B
+applies the short rule “Nudge me if I'm doomscrolling: passively consuming a social feed or short videos. Otherwise leave me alone.” to a reduced-resolution
+screen image. A `NUDGE` verdict generates a fresh invitation body for the selected
+prepared article under the fixed headline **STOP. Read this instead.** Checks continue after notification delivery. Further NUDGE
+verdicts produce fresh copy with up to three previous invitations as context.
+A `WAIT` verdict ends the episode and clears that context and its notification;
+`UNCERTAIN` stays quiet and leaves the episode open.
 
 The demo includes the MONIAC water computer, Voyager's Golden Record, and the
 Antikythera mechanism. It does not fetch or summarize a website during the demo.
@@ -16,12 +16,11 @@ Antikythera mechanism. It does not fetch or summarize a website during the demo.
 ## Run the demo
 
 1. Install the debug APK and its local model with `scripts/install-demo.sh /path/to/gemma-4-E2B-it.litertlm`.
-2. Open **Elsewhere** and tap **Start**. Allow the first invitation to prepare,
-   then grant notifications and entire-screen capture. Future starts reuse cached copy.
-3. Open X or x.com and scroll. The normal interval is 30 seconds. For rehearsal,
+2. Open **Elsewhere** and tap **Start**. Grant notifications and entire-screen capture.
+3. Open X or x.com and scroll. The normal interval is 15 seconds. For rehearsal,
    open **Demo controls** and use **Check in 5 seconds** for an earlier real check.
-4. Tap the notification to open the article. **Reset nudge**, under Demo controls,
-   permits another nudge. The article selector chooses the next prepared reading.
+4. Tap the notification to open the article. **Reset episode**, under Demo controls,
+   discards the current episode without stopping checks. The article selector chooses the next prepared reading.
    **Pause** releases capture and the model.
 
 Android shows its screen-sharing indicator during a session. Locking the phone,
@@ -33,7 +32,7 @@ On Samsung, select **Settings → Notifications → App notifications → Elsewh
 Notification pop-up style → Detailed pop-up** for the larger banner. Its exact size
 is controlled by the operating system; expanding the notification reveals the full body.
 The article-only nudge supplies a public notification version so Android can show
-its generated title and body during screen sharing. This does not expose captured
+the fixed headline and generated body during screen sharing. This does not expose captured
 screen content or change other applications' notification privacy.
 
 For a longer-lived demo banner, the loaner's interactive accessibility timeout
@@ -69,46 +68,46 @@ app's private files directory.
 - `ModelRunner`: serialized model initialization/inference, bounded image tokens,
   rule-driven verdicts, article-independent copy generation, and GPU/CPU initialization fallback.
 - `ArticleLibrary`: local fact briefs, URLs, and the prepared plain-language rule.
-- `NudgeCache`: persistent validated Gemma copy keyed by the article and writer prompt.
+- `NudgeEpisode`: bounded invitation history, repeated attempts, and resolution/reset state.
 - `MainActivity`: one Start/Pause control and collapsed demo tools. A debug-only `classify_file`
   intent allows testing an image staged inside the app's private directory.
 
 Model latency, memory, and thermal behavior must be tested on the actual device.
-The demo rule distinguishes social feeds from writing, conversations, and reading;
-it does not establish whether any activity is healthy or infer time spent. The [prepared demo diagram](docs/demo-v2.md) distinguishes
+The model applies the short doomscrolling rule to one screenshot; it cannot
+establish elapsed scrolling time or actual intent from that observation alone. The [prepared demo diagram](docs/demo-v2.md) distinguishes
 this from the future share-to-app flow and editable personal rules.
 
 ## Verified on the demo phone
 
-The debug build is installed on the Samsung Galaxy S26 FE running Android 17.
-Live X recognition, locally generated title/body, visible text during capture,
-article opening, a quiet non-X screen, and stopping the session have been checked.
-See `docs/validation/device-check.json` for measurements and user confirmations.
-The saved measurements are for the earlier single-article version; additional
-prepared-library checks are recorded separately. Timings vary. The 30-second
-interval is when a check starts, not a promise of an instant notification.
+The app is installed on the Samsung Galaxy S26 FE running Android 17.
 
-With a real nudge still posted, run `python3 scripts/check-live-notification.py`
-to verify that its title/body match the model output and remain public during
-capture. Run this before tapping or dismissing the notification.
+- The live episode loop sent two different invitations on YouTube Shorts without
+  a reset. Opening the article led to WAIT, removal of the notification, and
+  completion of the episode. Returning to Shorts began another episode.
+  See `docs/validation/repeated-loop-check.json`. Those checks used the writer
+  immediately before the final headline/body style revision.
+- The final writer uses the fixed headline **STOP. Read this instead.** and
+  generates only the body. Three articles plus a follow-up were checked on-device
+  in 4.3–4.8 seconds per generation. See
+  `docs/validation/stop-headline-copy-check.json`.
+- The six-word doomscrolling rule missed a YouTube Shorts screenshot. Adding the
+  short definition “passively consuming a social feed or short videos” passed
+  that Shorts case plus X, a composer, and an article. See
+  `docs/validation/youtube-rule-check.json`. These are small exploratory samples,
+  not general accuracy estimates.
+- Six unit tests cover episode history, completion/reset, stale-result rejection,
+  and complete notification sentences. Build and read-only integration review passed.
 
-The prepared-content revision is verified in
-`docs/validation/prepared-demo-check.json`: live `NUDGE` on X, `WAIT` on the NASA
-article, generic copy generation for both Voyager and MONIAC, article-link
-confirmation, and Pause cleanup. The third prepared topic is bundled but has
-not had its own on-device copy-generation run.
+Checks target 15-second slots. Long inference skips slots rather than overlapping
+jobs. Android controls banner delivery, and a single screenshot cannot establish
+elapsed scrolling time or actual intent.
 
-The context-sensitive rule and invitation cache are verified in
-`docs/validation/context-cache-check.json`: an empty X composer stayed quiet,
-the feed produced a nudge twice, and its linked article stayed quiet. Feed
-judgment took 2.4–3.7 seconds in those runs; cached copy lookup took 6–7 ms.
-The first invitation still requires generation before capture starts. These
-are individual measurements, not performance guarantees.
+With a nudge still posted, run `python3 scripts/check-live-notification.py` to
+verify the app headline and Gemma body are visible during capture.
+
+Earlier revision evidence is retained in `docs/validation/device-check.json`,
+`prepared-demo-check.json`, `context-cache-check.json`, and
+`short-rule-experiment.json`. Those cover earlier rules and the retired cached-copy
+flow, not the current behavior.
 
 See [the submission description and three-minute demo](docs/submission.md).
-
-The current [short interruption rule](app/src/main/assets/demo-rule.txt) uses general
-activity language, with no X-specific or composer-specific instructions. It
-matched the detailed baseline on six exploratory phone screenshots; see
-[the prompt comparison](docs/validation/short-rule-experiment.md). This does not
-establish broad accuracy across apps.

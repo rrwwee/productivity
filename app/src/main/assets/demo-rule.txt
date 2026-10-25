@@ -1,1 +1,1 @@
-Nudge me while I browse a social media feed. Stay quiet while I write, communicate with someone, or read an article. If unclear, stay quiet.
+Nudge me if I'm doomscrolling: passively consuming a social feed or short videos. Otherwise leave me alone.

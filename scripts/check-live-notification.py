@@ -19,16 +19,16 @@ def shell(command):
 state = json.loads(shell(f"run-as {PACKAGE} cat files/diagnostics.json"))
 assert state["nudged"], "No model-triggered nudge has been delivered in this session."
 assert state["decision"] == "NUDGE", "The nudge did not follow Gemma's NUDGE verdict."
-assert state["nudgeTitle"] and state["nudgeBody"], "Generated copy is missing."
+assert state["nudgeTitle"] and state["nudgeBody"], "Notification copy is missing."
 keys = shell("cmd notification list").splitlines()
 key = next((key for key in keys if f"|{PACKAGE}|2|null|" in key), None)
 assert key, "Nudge is no longer posted. Run this check before tapping it."
 record = shell("cmd notification get " + shlex.quote(key))
 assert "vis=PUBLIC" in record, "Nudge text would be hidden during screen sharing."
 assert "publicNotification=" in record, "Public notification version is missing."
-assert f"android.title=String ({state['nudgeTitle']})" in record, "Posted title differs from Gemma output."
+assert f"android.title=String ({state['nudgeTitle']})" in record, "Posted headline differs from application state."
 assert f"android.text=String ({state['nudgeBody']})" in record, "Posted body differs from Gemma output."
-print("PASS: rule-triggered nudge contains Gemma's title/body and is public during capture.")
+print("PASS: rule-triggered nudge contains the app headline and Gemma's body, public during capture.")
 print(f"Vision: {state['latencyMs']} ms; copy generation: {state['copyLatencyMs']} ms.")
 if state.get("copySource"):
     print(f"Copy source: {state['copySource']}; current lookup: {state['copyLookupLatencyMs']} ms.")

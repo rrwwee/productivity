@@ -1,0 +1,64 @@
+{
+  "rules": {
+    "six_words": "Nudge me if I'm doomscrolling.",
+    "short_clarification": "Nudge me if I'm doomscrolling: passively consuming a social feed or short videos. Otherwise leave me alone."
+  },
+  "results": [
+    {
+      "rule_name": "six_words",
+      "fixture": "composer",
+      "decision": "WAIT",
+      "latencyMs": 3640,
+      "backend": "GPU"
+    },
+    {
+      "rule_name": "six_words",
+      "fixture": "feed",
+      "decision": "NUDGE",
+      "latencyMs": 1790,
+      "backend": "GPU"
+    },
+    {
+      "rule_name": "six_words",
+      "fixture": "article",
+      "decision": "WAIT",
+      "latencyMs": 1725,
+      "backend": "GPU"
+    },
+    {
+      "rule_name": "six_words",
+      "fixture": "youtube",
+      "decision": "WAIT",
+      "latencyMs": 1730,
+      "backend": "GPU"
+    },
+    {
+      "rule_name": "short_clarification",
+      "fixture": "composer",
+      "decision": "WAIT",
+      "latencyMs": 1776,
+      "backend": "GPU"
+    },
+    {
+      "rule_name": "short_clarification",
+      "fixture": "feed",
+      "decision": "NUDGE",
+      "latencyMs": 1763,
+      "backend": "GPU"
+    },
+    {
+      "rule_name": "short_clarification",
+      "fixture": "article",
+      "decision": "WAIT",
+      "latencyMs": 1688,
+      "backend": "GPU"
+    },
+    {
+      "rule_name": "short_clarification",
+      "fixture": "youtube",
+      "decision": "NUDGE",
+      "latencyMs": 1791,
+      "backend": "GPU"
+    }
+  ]
+}

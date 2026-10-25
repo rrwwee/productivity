@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "minimal_doomscrolling": "Nudge me if I'm doomscrolling."
+  },
+  "results": [
+    {
+      "rule_name": "minimal_doomscrolling",
+      "fixture": "composer",
+      "decision": "WAIT",
+      "latencyMs": 1943,
+      "backend": "GPU"
+    },
+    {
+      "rule_name": "minimal_doomscrolling",
+      "fixture": "feed",
+      "decision": "NUDGE",
+      "latencyMs": 1734,
+      "backend": "GPU"
+    },
+    {
+      "rule_name": "minimal_doomscrolling",
+      "fixture": "article",
+      "decision": "WAIT",
+      "latencyMs": 1651,
+      "backend": "GPU"
+    }
+  ]
+}

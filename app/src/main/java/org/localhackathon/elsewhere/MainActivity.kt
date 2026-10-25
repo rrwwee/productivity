@@ -85,11 +85,7 @@ class MainActivity : Activity() {
             setSelection(articles.indexOfFirst { it.id == ArticleLibrary.selected(this@MainActivity).id }.coerceAtLeast(0))
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    val changed = ArticleLibrary.selected(this@MainActivity).id != articles[position].id
                     ArticleLibrary.select(this@MainActivity, articles[position].id)
-                    if (changed && DemoState.ready) {
-                        ModelRunner.prepareNudge(applicationContext, articles[position]) { _, _ -> }
-                    }
                 }
                 override fun onNothingSelected(parent: AdapterView<*>?) = Unit
             }
@@ -101,10 +97,10 @@ class MainActivity : Activity() {
             controls.addView(this, LinearLayout.LayoutParams(-1, dp(52)))
         }
         soon = demoButton("Check in 5 seconds") { command(MonitoringService.SOON) }
-        reset = demoButton("Reset nudge") { command(MonitoringService.RESET) }
+        reset = demoButton("Reset episode") { command(MonitoringService.RESET) }
         controls.addView(text("Demo rule", 14f, true).apply { setPadding(0, dp(18), 0, dp(8)) })
         controls.addView(text(ArticleLibrary.rule(this), 13f))
-        controls.addView(text("Checks run every 30 seconds. Android shows a sharing indicator. Locking the phone or starting another screen share ends the session.", 12f)
+        controls.addView(text("Checks run every 15 seconds. Android shows a sharing indicator. Locking the phone or starting another screen share ends the session.", 12f)
             .apply { setPadding(0, dp(18), 0, 0) })
         space(28)
         column.addView(text("Private, on-device screen checks.\nYou can leave this screen after starting.", 13f))
@@ -120,22 +116,12 @@ class MainActivity : Activity() {
         }
         preparing = true
         ModelRunner.prepare(this) { error ->
-            if (error == null) {
-                DemoState.status = "Preparing your next read, privately…"
-                ModelRunner.prepareNudge(applicationContext) { _, failure ->
-                    runOnUiThread {
-                        preparing = false
-                        if (failure == null && !isFinishing && !isDestroyed) {
-                            val manager = getSystemService(MediaProjectionManager::class.java)
-                            startActivityForResult(manager.createScreenCaptureIntent(), 12)
-                        } else if (failure != null) {
-                            DemoState.status = "Could not prepare an invitation. Tap Start to retry."
-                        }
-                        render()
-                    }
-                }
-            } else runOnUiThread {
+            runOnUiThread {
                 preparing = false
+                if (error == null && !isFinishing && !isDestroyed) {
+                    val manager = getSystemService(MediaProjectionManager::class.java)
+                    startActivityForResult(manager.createScreenCaptureIntent(), 12)
+                }
                 render()
             }
         }
@@ -175,13 +161,13 @@ class MainActivity : Activity() {
             !ModelRunner.modelFile(this).isFile -> "Waiting for the local model."
             preparing || (DemoState.busy && !DemoState.ready) -> "Getting ready…"
             DemoState.busy -> "Finding your next thing…"
-            DemoState.monitoring && DemoState.nudged -> "A nudge was sent."
+            DemoState.monitoring && DemoState.nudged -> "A better next thing is waiting."
             DemoState.monitoring -> "Watching quietly."
             else -> "Ready when you are."
         }
         start.text = if (DemoState.monitoring) "Pause" else "Start"
         start.isEnabled = DemoState.monitoring || (!preparing && !DemoState.busy)
-        soon.isEnabled = DemoState.monitoring && !DemoState.busy && !DemoState.nudged
+        soon.isEnabled = DemoState.monitoring && !DemoState.busy
         reset.isEnabled = !DemoState.busy
         articleSelector.isEnabled = !preparing && !DemoState.busy
         val filePresent = ModelRunner.modelFile(this).isFile
@@ -189,7 +175,7 @@ class MainActivity : Activity() {
             error != null -> error
             !filePresent -> "Waiting for the local model to be installed."
             DemoState.busy -> "Gemma is working entirely on this phone."
-            DemoState.monitoring && DemoState.nudged -> "Keep exploring, or reset the nudge to rehearse again."
+            DemoState.monitoring && DemoState.nudged -> "${DemoState.episodeNudges} invitation(s) this episode. Checks continue every 15 seconds."
             DemoState.monitoring -> {
                 val seconds = ((DemoState.nextCheckAt - SystemClock.elapsedRealtime()).coerceAtLeast(0) / 1000) + 1
                 "Next check in ${seconds}s. You can use your phone normally."
@@ -203,6 +189,21 @@ class MainActivity : Activity() {
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); handleDebugIntent(intent) }
     private fun handleDebugIntent(intent: Intent?) {
         if (!BuildConfig.DEBUG) return
+        val articleId = intent?.getStringExtra("generate_article")
+        if (articleId != null) {
+            val article = ArticleLibrary.all(this).firstOrNull { it.id == articleId } ?: return
+            val previous = intent.getStringExtra("previous_title")?.let {
+                listOf(NudgeCopy(it, intent.getStringExtra("previous_body") ?: ""))
+            } ?: emptyList()
+            ModelRunner.prepare(this) { error ->
+                if (error == null) ModelRunner.generateNudge(applicationContext, article, previous,
+                    intent.getStringExtra("copy_instruction")) { _, failure ->
+                    DemoState.status = if (failure == null) "Copy test ready." else "Copy test failed: ${failure.message}"
+                    DemoState.save(this)
+                }
+            }
+            return
+        }
         val fixture = intent?.getStringExtra("classify_file") ?: return
         // ADB can stage a test image in this debuggable app's private directory.
         val file = File(filesDir, fixture).canonicalFile
