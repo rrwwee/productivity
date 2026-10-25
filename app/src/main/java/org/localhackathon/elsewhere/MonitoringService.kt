@@ -228,7 +228,7 @@ class MonitoringService : Service() {
                                 decision == "NUDGE" -> {
                                     generating = true
                                     DemoState.status = "Finding a more interesting next thing…"
-                                    val selectedArticle = ArticleLibrary.selected(applicationContext)
+                                    val selectedArticle = ArticleLibrary.next(applicationContext)
                                     val episodeId = episode.begin()
                                     syncEpisodeState()
                                     ModelRunner.generateNudge(applicationContext, selectedArticle, episode.history) { copy, failure ->
@@ -379,6 +379,7 @@ class MonitoringService : Service() {
             .setContentIntent(openArticle).setAutoCancel(true).setOnlyAlertOnce(false).setCategory(Notification.CATEGORY_RECOMMENDATION)
             .addAction(Notification.Action.Builder(null, "See how it worked", openArticle).build()).build()
         getSystemService(NotificationManager::class.java).notify(2, notification)
+        ArticleLibrary.recordDelivered(applicationContext, selectedArticle)
         DemoState.status = "A better next thing is waiting in your notifications."
         Log.i("Elsewhere", "Nudge delivered after Gemma NUDGE verdict; article=${selectedArticle.id}")
     }

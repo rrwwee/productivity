@@ -42,6 +42,20 @@ object ArticleLibrary {
         context.getSharedPreferences("demo", Context.MODE_PRIVATE).edit().putString("article", id).apply()
     }
 
+    fun next(context: Context): PreparedArticle {
+        val articles = all(context)
+        // Treat the previously pinned article as the starting cursor on upgrade.
+        val last = context.getSharedPreferences("demo", Context.MODE_PRIVATE)
+            .getString("last_delivered_article", selected(context).id)
+        val nextId = ArticleRotation.nextId(articles.map { it.id }, last)
+        return articles.first { it.id == nextId }
+    }
+
+    fun recordDelivered(context: Context, article: PreparedArticle) {
+        context.getSharedPreferences("demo", Context.MODE_PRIVATE).edit()
+            .putString("last_delivered_article", article.id).apply()
+    }
+
     fun rule(context: Context): String =
         context.assets.open("demo-rule.txt").bufferedReader().use { it.readText().trim() }
 }

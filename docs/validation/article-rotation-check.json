@@ -1,0 +1,69 @@
+{
+  "status": "passed",
+  "device": "Samsung Galaxy S26 FE, Android 17",
+  "sequence": [
+    {
+      "status": "A better next thing is waiting in your notifications.",
+      "ready": true,
+      "monitoring": true,
+      "busy": false,
+      "nudged": true,
+      "backend": "GPU",
+      "autoResume": true,
+      "pausedForLock": false,
+      "decision": "NUDGE",
+      "latencyMs": 4700,
+      "checks": 1,
+      "nudgeTitle": "STOP. Read this instead.",
+      "nudgeBody": "This duck robot can learn to skate with skates. Stop scrolling and see how it does.",
+      "copyLatencyMs": 6556,
+      "articleId": "microduck",
+      "articleUrl": "https://pollen-robotics.com/microduck/blog/introducing-microduck/",
+      "copySource": "generated",
+      "copyLookupLatencyMs": 6556,
+      "copyGeneratedAtMillis": 1792896666656,
+      "episodeId": 1,
+      "episodeNudges": 1,
+      "completedEpisodes": 0,
+      "totalNudges": 1,
+      "lastNudgeAt": 67479693,
+      "nextCheckAt": 67483382
+    },
+    {
+      "status": "A better next thing is waiting in your notifications.",
+      "ready": true,
+      "monitoring": true,
+      "busy": false,
+      "nudged": true,
+      "backend": "GPU",
+      "autoResume": true,
+      "pausedForLock": false,
+      "decision": "NUDGE",
+      "latencyMs": 2159,
+      "checks": 2,
+      "nudgeTitle": "STOP. Read this instead.",
+      "nudgeBody": "This paper showed how a machine translation system works without using any old recurrent or convolutional layers.",
+      "copyLatencyMs": 8083,
+      "articleId": "attention",
+      "articleUrl": "https://arxiv.org/pdf/1706.03762",
+      "copySource": "generated",
+      "copyLookupLatencyMs": 8083,
+      "copyGeneratedAtMillis": 1792896681108,
+      "episodeId": 1,
+      "episodeNudges": 2,
+      "completedEpisodes": 0,
+      "totalNudges": 2,
+      "lastNudgeAt": 67494146,
+      "nextCheckAt": 67498894
+    }
+  ],
+  "unitTests": {
+    "count": 12,
+    "failures": 0
+  },
+  "lint": {
+    "errors": 0
+  },
+  "linkTargetsVerified": "Android pending intents contained the Microduck URL and arxiv.org/pdf/1706.03762. The screen tap was issued, but article rendering was not confirmed in this pass.",
+  "policy": "Advance after a posted notification, persist last delivered article across sessions, and cycle through all saved articles before repeating."
+}

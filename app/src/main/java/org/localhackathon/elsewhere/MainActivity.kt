@@ -24,7 +24,6 @@ class MainActivity : Activity() {
     private lateinit var start: Button
     private lateinit var soon: Button
     private lateinit var reset: Button
-    private lateinit var articleSelector: Spinner
     private lateinit var autoResumeButton: Button
     private val ink = Color.rgb(30, 54, 45)
     private val paper = Color.rgb(246, 245, 237)
@@ -82,19 +81,7 @@ class MainActivity : Activity() {
             controls.visibility = if (controls.visibility == View.GONE) View.VISIBLE else View.GONE
         }
         column.addView(controls)
-        controls.addView(text("Prepared article", 14f, true))
-        val articles = ArticleLibrary.all(this)
-        articleSelector = Spinner(this).apply {
-            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, articles.map { it.title })
-            setSelection(articles.indexOfFirst { it.id == ArticleLibrary.selected(this@MainActivity).id }.coerceAtLeast(0))
-            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    ArticleLibrary.select(this@MainActivity, articles[position].id)
-                }
-                override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-            }
-        }
-        controls.addView(articleSelector, LinearLayout.LayoutParams(-1, dp(58)))
+        controls.addView(text("Saved articles rotate with every invitation.", 14f))
         fun demoButton(label: String, action: () -> Unit) = Button(this).apply {
             text = label; isAllCaps = false; setTextColor(ink)
             setOnClickListener { action() }
@@ -217,7 +204,6 @@ class MainActivity : Activity() {
         start.isEnabled = DemoState.monitoring || (!preparing && !DemoState.busy)
         soon.isEnabled = DemoState.monitoring && !DemoState.busy
         reset.isEnabled = !DemoState.busy
-        articleSelector.isEnabled = !preparing && !DemoState.busy
         val filePresent = ModelRunner.modelFile(this).isFile
         detail.text = when {
             error != null -> error

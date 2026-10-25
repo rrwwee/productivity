@@ -6,9 +6,9 @@ A hackathon Android demo that offers something more interesting when you drift i
 
 Tap Start, then use your phone normally. About every 15 seconds, Gemma 4 E2B
 applies the short rule “Nudge me if I'm doomscrolling: passively consuming a social feed or short videos. Otherwise leave me alone.” to a reduced-resolution
-screen image. A `NUDGE` verdict generates a fresh invitation body for the selected
+screen image. A `NUDGE` verdict generates a fresh invitation body for the next
 prepared article under the fixed headline **STOP. Read this instead.** Checks continue after notification delivery. Further NUDGE
-verdicts produce fresh copy with up to three previous invitations as context.
+verdicts rotate through the saved articles and produce fresh copy with up to three previous invitations as context.
 A `WAIT` verdict ends the episode and clears that context and its notification;
 `UNCERTAIN` stays quiet and leaves the episode open.
 
@@ -22,7 +22,8 @@ The demo includes Stanford's brain-origins research, Microduck, and the original
 3. Open X or x.com and scroll. The normal interval is 15 seconds. For rehearsal,
    open **Demo controls** and use **Check in 5 seconds** for an earlier real check.
 4. Tap the notification to open the article. **Reset episode**, under Demo controls,
-   discards the current episode without stopping checks. The article selector chooses the next prepared reading.
+   discards the current episode without stopping checks. Articles rotate on each
+   delivered nudge; the last delivered article is remembered across sessions.
    **Pause** releases capture and the model.
 
 ### Auto-resume during daily use
@@ -118,7 +119,7 @@ The app is installed on the Samsung Galaxy S26 FE running Android 17.
   that Shorts case plus X, a composer, and an article. See
   `docs/validation/youtube-rule-check.json`. These are small exploratory samples,
   not general accuracy estimates.
-- Eight unit tests cover episode history, completion/reset, stale-result rejection,
+- Twelve unit tests cover article rotation, episode history, completion/reset, stale-result rejection,
   and complete notification sentences. Build and read-only integration review passed.
 
 Checks target 15-second slots. Long inference skips slots rather than overlapping
