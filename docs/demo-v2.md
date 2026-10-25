@@ -32,8 +32,10 @@ if inference misses a slot it is skipped, not queued. A screen can change during
 generation, so a notification reflects the most recently processed observation.
 Android controls whether repeat updates produce visible banners or sound.
 
-The article library contains three prepared factual briefs: Stanford brain origins, Microduck, and Attention Is All You Need (direct arXiv PDF). Gemma is not
-yet choosing an item from the library: the app rotates through all three,
+The article library contains five prepared factual briefs: Stanford brain origins, Microduck,
+Attention Is All You Need (direct arXiv PDF), Nick Cammarata's Neural Networks Are Already Clean,
+and Dario Amodei's Machines of Loving Grace. Gemma is not
+yet choosing an item from the library: the app rotates through all five,
 advancing only after a notification is posted. The cursor survives session resets and restarts. Every
 notification body is newly generated under the fixed headline “STOP. Read this instead.”; the previous prepared-copy cache is no longer
 used. URLs stay paired with the selected article and are not invented by Gemma.

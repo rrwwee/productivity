@@ -1,0 +1,79 @@
+{
+  "status": "passed",
+  "articlesAdded": [
+    "already-clean",
+    "loving-grace"
+  ],
+  "librarySize": 5,
+  "sources": {
+    "already-clean": "https://already-clean.goodfire.com/",
+    "loving-grace": "https://darioamodei.com/essay/machines-of-loving-grace"
+  },
+  "urls": {
+    "already-clean": {
+      "status": 200,
+      "contentType": "text/html"
+    },
+    "loving-grace": {
+      "status": 200,
+      "contentType": "text/html"
+    }
+  },
+  "onDeviceGenerations": [
+    {
+      "status": "Copy test ready.",
+      "ready": true,
+      "monitoring": false,
+      "busy": false,
+      "nudged": false,
+      "backend": "GPU",
+      "autoResume": false,
+      "pausedForLock": false,
+      "decision": "",
+      "latencyMs": 0,
+      "checks": 0,
+      "nudgeTitle": "STOP. Read this instead.",
+      "nudgeBody": "A neuron used to spot both cats and cars, but Cammarata says networks look messier than they are.",
+      "copyLatencyMs": 7616,
+      "articleId": "already-clean",
+      "articleUrl": "https://already-clean.goodfire.com/",
+      "copySource": "generated",
+      "copyLookupLatencyMs": 7616,
+      "copyGeneratedAtMillis": 1792896879944,
+      "episodeId": 0,
+      "episodeNudges": 0,
+      "completedEpisodes": 0,
+      "totalNudges": 0,
+      "lastNudgeAt": 0,
+      "nextCheckAt": 0
+    },
+    {
+      "status": "Copy test ready.",
+      "ready": true,
+      "monitoring": false,
+      "busy": false,
+      "nudged": false,
+      "backend": "GPU",
+      "autoResume": false,
+      "pausedForLock": false,
+      "decision": "",
+      "latencyMs": 0,
+      "checks": 0,
+      "nudgeTitle": "STOP. Read this instead.",
+      "nudgeBody": "Amodei thinks powerful AI could compress 100 years of medical progress into just ten years. It's a wild thought.",
+      "copyLatencyMs": 5043,
+      "articleId": "loving-grace",
+      "articleUrl": "https://darioamodei.com/essay/machines-of-loving-grace",
+      "copySource": "generated",
+      "copyLookupLatencyMs": 5043,
+      "copyGeneratedAtMillis": 1792896889169,
+      "episodeId": 0,
+      "episodeNudges": 0,
+      "completedEpisodes": 0,
+      "totalNudges": 0,
+      "lastNudgeAt": 0,
+      "nextCheckAt": 0
+    }
+  ],
+  "scope": "Verified source URLs and direct on-device generation for each new brief. Existing rotation logic is unchanged; these two entries were not separately verified as delivered live notifications in this pass."
+}

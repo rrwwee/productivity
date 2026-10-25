@@ -42,5 +42,33 @@
       "https://arxiv.org/abs/1706.03762",
       "https://arxiv.org/pdf/1706.03762"
     ]
+  },
+  {
+    "id": "already-clean",
+    "title": "Neural Networks Are Already Clean — Nick Cammarata",
+    "url": "https://already-clean.goodfire.com/",
+    "facts": [
+      "Nick Cammarata revisits a famous neuron that responded to both cats and cars, arguing that it detects a shared V-shaped pattern.",
+      "He argues that architecture problems and weak analysis tools made some neural networks appear more tangled than they really were.",
+      "The essay proposes studying native neurons and circuits directly; Cammarata presents the broader argument as a working hypothesis."
+    ],
+    "cautions": "Attribute the interpretation to Nick Cammarata or frame it as his argument. It is a working hypothesis, not proof that all AI is understood or that AI safety is solved. Do not claim all neurons have one simple meaning or that superposition never occurs.",
+    "sources": [
+      "https://already-clean.goodfire.com/"
+    ]
+  },
+  {
+    "id": "loving-grace",
+    "title": "Machines of Loving Grace — Dario Amodei",
+    "url": "https://darioamodei.com/essay/machines-of-loving-grace",
+    "facts": [
+      "Dario Amodei sketches an optimistic future in which powerful AI could improve health, reduce poverty, and change work and meaning.",
+      "He speculates that, after powerful AI is developed, fifty to one hundred years of biological and medical progress could be compressed into five to ten years.",
+      "The essay explicitly presents these possibilities as uncertain guesses, and says an inspiring positive vision matters alongside work on AI risks."
+    ],
+    "cautions": "Always attribute forecasts to Dario Amodei and use could, imagines, or predicts. These are speculative possibilities, not achieved results or guaranteed timelines. The five-to-ten-year forecast begins after powerful AI exists, not from today. Do not promise cures, immortality, or an end to poverty.",
+    "sources": [
+      "https://darioamodei.com/essay/machines-of-loving-grace"
+    ]
   }
 ]

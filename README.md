@@ -12,8 +12,10 @@ verdicts rotate through the saved articles and produce fresh copy with up to thr
 A `WAIT` verdict ends the episode and clears that context and its notification;
 `UNCERTAIN` stays quiet and leaves the episode open.
 
-The demo includes Stanford's brain-origins research, Microduck, and the original
-*Attention Is All You Need* paper linked directly as a PDF. It does not fetch or summarize a website during the demo.
+The demo includes Stanford's brain-origins research, Microduck, the original
+*Attention Is All You Need* paper linked directly as a PDF, Nick Cammarata's
+*Neural Networks Are Already Clean*, and Dario Amodei's *Machines of Loving Grace*.
+It does not fetch or summarize a website during the demo.
 
 ## Run the demo
 
