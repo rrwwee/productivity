@@ -22,7 +22,7 @@ current episode ends. The choice stays with you.
 Built in Kotlin for Android, Elsewhere runs Gemma through LiteRT-LM with GPU
 acceleration on a Samsung Galaxy S26 FE. Screen images are processed on the phone
 and discarded. A bounded history contains only the app's own public invitations.
-The demo has three prepared article briefs; sharing and web extraction are future
+The demo has three prepared readings: Stanford brain-origin research, Microduck, and the original Attention Is All You Need PDF; sharing and web extraction are future
 work. The app has no Internet permission; articles open separately in the browser.
 
 ## Three-minute presentation
@@ -73,3 +73,12 @@ A screenshot cannot establish actual intent or time spent scrolling.
 A backup video should be an uninterrupted recording of the actual device,
 clearly labeled as recorded. An external camera avoids replacing MediaProjection.
 No backup video has been recorded by this task.
+
+## Current reading selection
+
+The installed library now contains Stanford brain-origin research (default),
+Pollen Robotics’ Meet Microduck article, and Attention Is All You Need linked
+directly to its arXiv PDF. All three destination URLs return successfully.
+On-device copy generation was checked for each plus a brain-story follow-up;
+see `validation/new-library-check.json`. The older 4.3–4.8 second measurements
+above refer to the previous article briefs; these new checks took 13.9–16.7 seconds.

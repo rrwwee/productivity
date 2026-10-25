@@ -10,8 +10,8 @@ verdicts produce fresh copy with up to three previous invitations as context.
 A `WAIT` verdict ends the episode and clears that context and its notification;
 `UNCERTAIN` stays quiet and leaves the episode open.
 
-The demo includes the MONIAC water computer, Voyager's Golden Record, and the
-Antikythera mechanism. It does not fetch or summarize a website during the demo.
+The demo includes Stanford's brain-origins research, Microduck, and the original
+*Attention Is All You Need* paper linked directly as a PDF. It does not fetch or summarize a website during the demo.
 
 ## Run the demo
 
@@ -111,3 +111,8 @@ Earlier revision evidence is retained in `docs/validation/device-check.json`,
 flow, not the current behavior.
 
 See [the submission description and three-minute demo](docs/submission.md).
+
+The current reading list is checked in `docs/validation/new-library-check.json`.
+All three URLs return successfully, including the direct arXiv PDF. Generation
+for these new briefs took 13.9–16.7 seconds in the recorded run; older 4–5 second
+measurements above describe the prior library.

@@ -1,0 +1,158 @@
+{
+  "scope": "New prepared library; direct on-device writer checks, not a repeat of the live monitoring loop.",
+  "device": "Samsung Galaxy S26 FE / Android 17",
+  "backend": "GPU",
+  "articles": [
+    {
+      "id": "brain",
+      "title": "Two origin stories for the brain",
+      "url": "https://med.stanford.edu/news/all-news/2026/09/two-separate-brains.html",
+      "facts": [
+        "A Stanford-led study found that the forebrain and midbrain develop from a different early cell population than the hindbrain.",
+        "The findings suggest two distinct developmental starting points for these brain regions, rather than a single starting point.",
+        "Using this distinction, the researchers grew functional human hindbrain motor neurons in the laboratory."
+      ],
+      "cautions": "Present this as a research finding, not settled consensus. It does not mean a person has two independent minds or personalities. Do not claim the research has cured a disease.",
+      "sources": [
+        "https://med.stanford.edu/news/all-news/2026/09/two-separate-brains.html"
+      ]
+    },
+    {
+      "id": "microduck",
+      "title": "Microduck: a robot that learns to move",
+      "url": "https://pollen-robotics.com/microduck/blog/introducing-microduck/",
+      "facts": [
+        "Microduck is a small, duck-shaped walking robot, about 25 centimetres tall, with an articulated beak that can pick up objects.",
+        "Developers can train its movements in a physics simulation and then run those learned behaviours on the physical robot.",
+        "Its learned behaviours include walking, getting back up after common falls, and roller-skating with skates fitted."
+      ],
+      "cautions": "This is a programmable robot, not a living or conscious animal. Do not imply it instantly learns arbitrary tricks from spoken commands or can perform general household chores. Its software is open source; do not claim its hardware is open source.",
+      "sources": [
+        "https://pollen-robotics.com/microduck/blog/introducing-microduck/",
+        "https://pollen-robotics.com/microduck/"
+      ]
+    },
+    {
+      "id": "attention",
+      "title": "Attention Is All You Need \u2014 original paper",
+      "url": "https://arxiv.org/pdf/1706.03762",
+      "facts": [
+        "Attention Is All You Need is the 2017 paper that introduced the Transformer neural-network architecture.",
+        "Its Transformer uses attention mechanisms without recurrent or convolutional layers.",
+        "Self-attention lets the model relate different positions within a sequence, and the paper demonstrated machine translation with more parallel training."
+      ],
+      "cautions": "This is the original research paper, not a beginner tutorial or a new 2026 discovery. Attention existed before this paper; do not claim its authors invented attention itself. Do not imply the model thinks like a human or reads minds.",
+      "sources": [
+        "https://arxiv.org/abs/1706.03762",
+        "https://arxiv.org/pdf/1706.03762"
+      ]
+    }
+  ],
+  "endpoint_checks": {
+    "brain": "HTTP 200 text/html",
+    "microduck": "HTTP 200 text/html",
+    "attention": "HTTP 200 application/pdf; PDF header verified"
+  },
+  "generated_copy": [
+    {
+      "status": "Copy test ready.",
+      "ready": true,
+      "monitoring": false,
+      "busy": false,
+      "nudged": false,
+      "backend": "GPU",
+      "decision": "",
+      "latencyMs": 0,
+      "checks": 0,
+      "nudgeTitle": "STOP. Read this instead.",
+      "nudgeBody": "The forebrain and midbrain start from different brain cells than the hindbrain. It's a weird way the brain builds itself.",
+      "copyLatencyMs": 16666,
+      "articleId": "brain",
+      "articleUrl": "https://med.stanford.edu/news/all-news/2026/09/two-separate-brains.html",
+      "copySource": "generated",
+      "copyLookupLatencyMs": 16666,
+      "copyGeneratedAtMillis": 1792892092319,
+      "episodeId": 0,
+      "episodeNudges": 0,
+      "completedEpisodes": 0,
+      "totalNudges": 0,
+      "lastNudgeAt": 0,
+      "nextCheckAt": 0
+    },
+    {
+      "status": "Copy test ready.",
+      "ready": true,
+      "monitoring": false,
+      "busy": false,
+      "nudged": false,
+      "backend": "GPU",
+      "decision": "",
+      "latencyMs": 0,
+      "checks": 0,
+      "nudgeTitle": "STOP. Read this instead.",
+      "nudgeBody": "This tiny duck robot can learn to walk and even roller-skate. Skip the scroll and see how it works.",
+      "copyLatencyMs": 13904,
+      "articleId": "microduck",
+      "articleUrl": "https://pollen-robotics.com/microduck/blog/introducing-microduck/",
+      "copySource": "generated",
+      "copyLookupLatencyMs": 13904,
+      "copyGeneratedAtMillis": 1792892106701,
+      "episodeId": 0,
+      "episodeNudges": 0,
+      "completedEpisodes": 0,
+      "totalNudges": 0,
+      "lastNudgeAt": 0,
+      "nextCheckAt": 0
+    },
+    {
+      "status": "Copy test ready.",
+      "ready": true,
+      "monitoring": false,
+      "busy": false,
+      "nudged": false,
+      "backend": "GPU",
+      "decision": "",
+      "latencyMs": 0,
+      "checks": 0,
+      "nudgeTitle": "STOP. Read this instead.",
+      "nudgeBody": "The original paper introduced the Transformer, which completely skips layers like RNNs or convolutions.",
+      "copyLatencyMs": 13864,
+      "articleId": "attention",
+      "articleUrl": "https://arxiv.org/pdf/1706.03762",
+      "copySource": "generated",
+      "copyLookupLatencyMs": 13864,
+      "copyGeneratedAtMillis": 1792892121582,
+      "episodeId": 0,
+      "episodeNudges": 0,
+      "completedEpisodes": 0,
+      "totalNudges": 0,
+      "lastNudgeAt": 0,
+      "nextCheckAt": 0
+    },
+    {
+      "status": "Copy test ready.",
+      "ready": true,
+      "monitoring": false,
+      "busy": false,
+      "nudged": false,
+      "backend": "GPU",
+      "decision": "",
+      "latencyMs": 0,
+      "checks": 0,
+      "nudgeTitle": "STOP. Read this instead.",
+      "nudgeBody": "The forebrain and midbrain start from different brain cells than the hindbrain, which is a weird way the brain builds itself.",
+      "copyLatencyMs": 14598,
+      "articleId": "brain",
+      "articleUrl": "https://med.stanford.edu/news/all-news/2026/09/two-separate-brains.html",
+      "copySource": "generated",
+      "copyLookupLatencyMs": 14598,
+      "copyGeneratedAtMillis": 1792892136458,
+      "episodeId": 0,
+      "episodeNudges": 0,
+      "completedEpisodes": 0,
+      "totalNudges": 0,
+      "lastNudgeAt": 0,
+      "nextCheckAt": 0
+    }
+  ]
+}

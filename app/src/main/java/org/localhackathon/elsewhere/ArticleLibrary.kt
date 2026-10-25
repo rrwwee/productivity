@@ -33,7 +33,7 @@ object ArticleLibrary {
     }
 
     fun selected(context: Context): PreparedArticle {
-        val id = context.getSharedPreferences("demo", Context.MODE_PRIVATE).getString("article", "moniac")
+        val id = context.getSharedPreferences("demo", Context.MODE_PRIVATE).getString("article", null)
         return all(context).firstOrNull { it.id == id } ?: all(context).first()
     }
 
