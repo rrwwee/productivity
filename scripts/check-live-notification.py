@@ -30,3 +30,5 @@ assert f"android.title=String ({state['nudgeTitle']})" in record, "Posted title 
 assert f"android.text=String ({state['nudgeBody']})" in record, "Posted body differs from Gemma output."
 print("PASS: rule-triggered nudge contains Gemma's title/body and is public during capture.")
 print(f"Vision: {state['latencyMs']} ms; copy generation: {state['copyLatencyMs']} ms.")
+if state.get("copySource"):
+    print(f"Copy source: {state['copySource']}; current lookup: {state['copyLookupLatencyMs']} ms.")

@@ -7,28 +7,35 @@ Antikythera mechanism. Sources are recorded alongside each fact brief in
 `app/src/main/assets/demo-articles.json`.
 
 Gemma receives the plain-language instruction from
-`app/src/main/assets/demo-rule.txt`: offer an alternative when the user is on X,
-otherwise stay quiet. It returns `NUDGE`, `WAIT`, or `UNCERTAIN`. The app enforces
+`app/src/main/assets/demo-rule.txt`: offer an alternative for an X feed,
+but stay quiet for composers, conversations, articles, and other activities. It returns `NUDGE`, `WAIT`, or `UNCERTAIN`. The app enforces
 one job at a time and one nudge per session/reset, while Gemma interprets the rule.
 
 ```mermaid
 flowchart TD
-    Start[Start and approve capture] --> Service[Background service]
+    Start[Start] --> Prepare[Prepare selected article invitation]
+    Article[Selected prepared article facts] --> Prepare
+    Prepare --> Cache{Valid cached invitation?}
+    Cache -->|No| Writer[Gemma writes title and body]
+    Writer --> Validate[Validate and cache copy]
+    Cache -->|Yes| Permission[User approves screen capture]
+    Validate --> Permission
+    Permission --> Service[Background service]
     Service --> Frame[Sample one frame every 30 seconds]
-    Rule[Prepared plain-language demo rule] --> Judge[Gemma applies rule to frame]
+    Rule[Prepared interruption rule] --> Judge[Gemma applies rule to frame]
     Frame --> Judge
     Judge -->|WAIT or UNCERTAIN| Service
-    Judge -->|NUDGE| Writer[Gemma writes title and body]
-    Article[Selected prepared article facts] --> Writer
-    Writer --> Validate[Validate structured output]
-    Validate -->|Valid| Notify[Public text notification]
-    Validate -->|Invalid| Service
-    Notify -->|Tap| Link[Open the same article's URL]
+    Judge -->|NUDGE| Copy[Read matching invitation from cache]
+    Copy --> Notify[Public text notification]
+    Notify -->|Tap| Link[Open the same article URL]
     Notify --> Quiet[Wait until reset]
 ```
 
-The article object is captured when generation starts. Changing the selected
-article later cannot pair an already generated title with the wrong URL.
+
+The article object is captured at the live verdict. Changing the selection later
+cannot pair its copy with the wrong URL. Selection changes also warm the new
+article; on a cache miss at delivery, the writer generates real copy before notifying.
+The cache records the original generation time separately from lookup latency.
 
 The main screen has a single Start/Pause control. Prepared article selection and
 rehearsal controls are collapsed under **Demo controls**. After starting a session,
@@ -44,5 +51,5 @@ activity and cooldowns can supply context for more nuanced judgment.
 
 Share intake, live URL fetching, and editable personal rules are deliberately
 outside this demo. No network permission has been added. The current prompt and
-library are prepared assets, while judgment and notification writing happen live
-on the phone.
+library are prepared assets. Judgment happens at each screen check; notification
+writing happens locally ahead of time and is cached for later use.

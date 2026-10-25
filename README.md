@@ -4,9 +4,11 @@ A hackathon Android demo that offers something more interesting when you drift i
 
 Tap Start, then open the X app or x.com. About every 30 seconds, Gemma 4 E2B
 applies the prepared interruption rule to a reduced-resolution screen image:
-offer an alternative on X, otherwise stay quiet. A `NUDGE` verdict produces one
-text notification for the selected prepared article. Gemma writes its title and
-body locally from that article's factual brief. `WAIT` and `UNCERTAIN` stay quiet.
+offer an alternative for an X feed, but leave writing, conversations, articles,
+and other activities alone. A `NUDGE` verdict produces one text notification for
+the selected prepared article. Gemma writes its title and body locally before
+screen sharing starts; validated invitations are cached for reuse. `WAIT` and
+`UNCERTAIN` stay quiet.
 
 The demo includes the MONIAC water computer, Voyager's Golden Record, and the
 Antikythera mechanism. It does not fetch or summarize a website during the demo.
@@ -14,7 +16,8 @@ Antikythera mechanism. It does not fetch or summarize a website during the demo.
 ## Run the demo
 
 1. Install the debug APK and its local model with `scripts/install-demo.sh /path/to/gemma-4-E2B-it.litertlm`.
-2. Open **Elsewhere** and tap **Start**. Grant notifications and screen capture.
+2. Open **Elsewhere** and tap **Start**. Allow the first invitation to prepare,
+   then grant notifications and entire-screen capture. Future starts reuse cached copy.
 3. Open X or x.com and scroll. The normal interval is 30 seconds. For rehearsal,
    open **Demo controls** and use **Check in 5 seconds** for an earlier real check.
 4. Tap the notification to open the article. **Reset nudge**, under Demo controls,
@@ -66,12 +69,13 @@ app's private files directory.
 - `ModelRunner`: serialized model initialization/inference, bounded image tokens,
   rule-driven verdicts, article-independent copy generation, and GPU/CPU initialization fallback.
 - `ArticleLibrary`: local fact briefs, URLs, and the prepared plain-language rule.
+- `NudgeCache`: persistent validated Gemma copy keyed by the article and writer prompt.
 - `MainActivity`: one Start/Pause control and collapsed demo tools. A debug-only `classify_file`
   intent allows testing an image staged inside the app's private directory.
 
 Model latency, memory, and thermal behavior must be tested on the actual device.
-The demo rule deliberately treats X as the trigger; it does not establish that
-all X use is unhealthy. The [prepared demo diagram](docs/demo-v2.md) distinguishes
+The demo rule distinguishes passive X feeds from composing and conversations;
+it does not establish whether any activity is healthy or infer time spent. The [prepared demo diagram](docs/demo-v2.md) distinguishes
 this from the future share-to-app flow and editable personal rules.
 
 ## Verified on the demo phone
@@ -93,3 +97,12 @@ The prepared-content revision is verified in
 article, generic copy generation for both Voyager and MONIAC, article-link
 confirmation, and Pause cleanup. The third prepared topic is bundled but has
 not had its own on-device copy-generation run.
+
+The context-sensitive rule and invitation cache are verified in
+`docs/validation/context-cache-check.json`: an empty X composer stayed quiet,
+the feed produced a nudge twice, and its linked article stayed quiet. Feed
+judgment took 2.4–3.7 seconds in those runs; cached copy lookup took 6–7 ms.
+The first invitation still requires generation before capture starts. These
+are individual measurements, not performance guarantees.
+
+See [the submission description and three-minute demo](docs/submission.md).

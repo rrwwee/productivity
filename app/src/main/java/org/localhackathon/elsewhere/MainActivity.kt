@@ -22,6 +22,7 @@ class MainActivity : Activity() {
     private lateinit var start: Button
     private lateinit var soon: Button
     private lateinit var reset: Button
+    private lateinit var articleSelector: Spinner
     private val ink = Color.rgb(30, 54, 45)
     private val paper = Color.rgb(246, 245, 237)
     private var preparing = false
@@ -79,17 +80,21 @@ class MainActivity : Activity() {
         column.addView(controls)
         controls.addView(text("Prepared article", 14f, true))
         val articles = ArticleLibrary.all(this)
-        val selector = Spinner(this).apply {
+        articleSelector = Spinner(this).apply {
             adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, articles.map { it.title })
             setSelection(articles.indexOfFirst { it.id == ArticleLibrary.selected(this@MainActivity).id }.coerceAtLeast(0))
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    val changed = ArticleLibrary.selected(this@MainActivity).id != articles[position].id
                     ArticleLibrary.select(this@MainActivity, articles[position].id)
+                    if (changed && DemoState.ready) {
+                        ModelRunner.prepareNudge(applicationContext, articles[position]) { _, _ -> }
+                    }
                 }
                 override fun onNothingSelected(parent: AdapterView<*>?) = Unit
             }
         }
-        controls.addView(selector, LinearLayout.LayoutParams(-1, dp(58)))
+        controls.addView(articleSelector, LinearLayout.LayoutParams(-1, dp(58)))
         fun demoButton(label: String, action: () -> Unit) = Button(this).apply {
             text = label; isAllCaps = false; setTextColor(ink)
             setOnClickListener { action() }
@@ -115,12 +120,22 @@ class MainActivity : Activity() {
         }
         preparing = true
         ModelRunner.prepare(this) { error ->
-            runOnUiThread {
-                preparing = false
-                if (error == null && !isFinishing) {
-                    val manager = getSystemService(MediaProjectionManager::class.java)
-                    startActivityForResult(manager.createScreenCaptureIntent(), 12)
+            if (error == null) {
+                DemoState.status = "Preparing your next read, privately…"
+                ModelRunner.prepareNudge(applicationContext) { _, failure ->
+                    runOnUiThread {
+                        preparing = false
+                        if (failure == null && !isFinishing && !isDestroyed) {
+                            val manager = getSystemService(MediaProjectionManager::class.java)
+                            startActivityForResult(manager.createScreenCaptureIntent(), 12)
+                        } else if (failure != null) {
+                            DemoState.status = "Could not prepare an invitation. Tap Start to retry."
+                        }
+                        render()
+                    }
                 }
+            } else runOnUiThread {
+                preparing = false
                 render()
             }
         }
@@ -168,6 +183,7 @@ class MainActivity : Activity() {
         start.isEnabled = DemoState.monitoring || (!preparing && !DemoState.busy)
         soon.isEnabled = DemoState.monitoring && !DemoState.busy && !DemoState.nudged
         reset.isEnabled = !DemoState.busy
+        articleSelector.isEnabled = !preparing && !DemoState.busy
         val filePresent = ModelRunner.modelFile(this).isFile
         detail.text = when {
             error != null -> error
