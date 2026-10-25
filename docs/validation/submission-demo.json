@@ -1,10 +1,10 @@
 {
   "video": "https://rrwwee.github.io/productivity/",
-  "direct_video": "https://github.com/rrwwee/productivity/releases/download/hackathon-demo/elsewhere-demo.mp4",
+  "direct_video": "https://github.com/rrwwee/productivity/releases/download/hackathon-demo/elsewhere-demo-simple.mp4",
   "durationSeconds": 47,
-  "width": 1920,
-  "height": 1080,
-  "recording": "Actual ADB screen recording on Galaxy S26 FE while Elsewhere MediaProjection remained active. Explanatory panels added; playback not accelerated. No synthetic model decisions or notification copy.",
+  "width": 720,
+  "height": 1560,
+  "recording": "Actual ADB screen recording on Galaxy S26 FE while Elsewhere MediaProjection remained active. Phone recording only, with no added text or panels; playback not accelerated. No synthetic model decisions or notification copy.",
   "public_playback_verified": true,
   "events": [
     {

@@ -10,7 +10,7 @@
     header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
     h1 { margin: 0; font-size: 30px; letter-spacing: -1px; }
     a { color: inherit; font-size: 14px; text-underline-offset: 4px; }
-    video { display: block; width: 100%; aspect-ratio: 16/9; background: #183c31; border-radius: 14px; }
+    video { display: block; width: auto; max-width: 100%; max-height: calc(100svh - 160px); margin: 0 auto; background: #183c31; border-radius: 14px; }
   </style>
 </head>
 <body>
@@ -19,7 +19,7 @@
       <h1>Elsewhere</h1>
       <a href="https://github.com/rrwwee/productivity">Source code</a>
     </header>
-    <video controls playsinline preload="metadata" aria-label="Elsewhere app demo" src="https://github.com/rrwwee/productivity/releases/download/hackathon-demo/elsewhere-demo.mp4"></video>
+    <video controls playsinline preload="metadata" aria-label="Elsewhere app demo" src="https://github.com/rrwwee/productivity/releases/download/hackathon-demo/elsewhere-demo-simple.mp4"></video>
   </main>
 </body>
 </html>

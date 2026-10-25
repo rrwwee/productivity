@@ -1,6 +1,6 @@
 # Elsewhere
 
-**[Watch the 47-second demo](https://rrwwee.github.io/productivity/)** · [Download the video](https://github.com/rrwwee/productivity/releases/download/hackathon-demo/elsewhere-demo.mp4)
+**[Watch the 47-second demo](https://rrwwee.github.io/productivity/)** · [Download the video](https://github.com/rrwwee/productivity/releases/download/hackathon-demo/elsewhere-demo-simple.mp4)
 
 A hackathon Android demo that offers something more interesting when you drift into a social feed.
 
