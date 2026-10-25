@@ -1,0 +1,10 @@
+Elsewhere — a better next thing
+
+Elsewhere turns an unwanted scroll into an invitation to do something you chose. A local Gemma 4 E2B model looks at the screen and judges whether to interrupt. When it does, Gemma writes a fresh notification inviting you to a prepared article. Ignore it and keep scrolling, and it can try another angle. Move on to reading, and the episode ends.
+
+Built today in Kotlin for Android using LiteRT-LM with GPU acceleration, demonstrated on a Samsung Galaxy S26 FE. Screen images stay on the phone and are discarded after inference. Only recent notification text is kept during an episode. Checks target 15 seconds; long inference skips slots rather than overlapping. The notification headline is fixed; Gemma generates its body.
+
+The demo uses three prepared readings: Stanford research on the brain's developmental origins, Microduck, and the original Attention Is All You Need PDF. Link sharing and article extraction are future work. The model uses no cloud inference. Article links open separately in the browser and may need Internet access.
+
+Repository: https://github.com/rrwwee/productivity
+Tracks: Mobile AI; Best Use of LiteRT
